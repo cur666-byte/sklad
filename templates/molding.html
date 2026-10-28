@@ -1,0 +1,1544 @@
+<!-- templates/molding.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Склад Погонажных Изделий</title>
+    <style>
+        html {
+    overflow-y: scroll; /* Вертикальный скроллбар отображается постоянно */
+}
+
+        html {
+    scrollbar-gutter: stable; /* Держит место под скроллбар всегда занятым */
+}
+
+        /* ============================================================
+           🎨 ЭТАЛОННЫЙ СТИЛЬ ИЗ SHEETS.HTML
+           ============================================================ */
+        html::-webkit-scrollbar, body::-webkit-scrollbar { width: 10px; height: 10px; }
+        html::-webkit-scrollbar-track, body::-webkit-scrollbar-track { background: #1e1e1e; border-left: 1px solid #333; }
+        html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb { background-color: #FF671F; border-radius: 6px; border: 2px solid #1e1e1e; }
+        html::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover { background-color: #ff8640; }
+        html::-webkit-scrollbar-corner, body::-webkit-scrollbar-corner { background: #1e1e1e; }
+
+
+        body { background-color: #1a1a1a; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .nav-back { margin-bottom: 20px; }
+        .nav-back a { color: #FF671F; text-decoration: none; font-size: 13px; font-weight: 600; border: 1px solid #FF671F; padding: 4px 10px; border-radius: 4px; transition: background 0.15s; }
+        .nav-back a:hover { background-color: rgba(255, 103, 31, 0.08); }
+        h1 { font-size: 22px; margin-top: 15px; margin-bottom: 25px; color: #ccc; border-left: 4px solid #FF671F; padding-left: 10px; }
+        .form-section { background-color: #262626; border: 1px solid #3d3d3d; border-radius: 8px; padding: 20px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .form-header-container { display: flex; justify-content: space-between; align-items: center; user-select: none; margin-bottom: 0; }
+        .section-title { font-size: 14px; font-weight: 700; color: #FF671F; text-transform: uppercase; letter-spacing: 0.5px; margin: 0; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-size: 12px; color: #888; margin-bottom: 5px; font-weight: 600; }
+        
+
+
+
+        input, select { height: 36px; padding: 0 12px; font-size: 13px; font-weight: 600; background-color: transparent; color: #FF671F; border: 2px solid #FF671F; border-radius: 6px; box-sizing: border-box; transition: box-shadow 0.15s ease; width: 100%; }
+        input:focus, select:focus { outline: none; box-shadow: 0 0 0 2px rgba(255, 103, 31, 0.35); }
+        input::placeholder { color: #666; }
+        select option { background-color: #262626; color: #fff; }
+        button, .btn-submit { min-height: 36px; padding: 6px 14px; font-size: 13px; font-weight: 600; line-height: 1; background-color: transparent; color: #FF671F; border: 2px solid #FF671F; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; width: 100%; box-sizing: border-box; transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease; }
+        button:hover, .btn-submit:hover { background-color: rgba(255, 103, 31, 0.08); box-shadow: 0 0 0 2px rgba(255, 103, 31, 0.35); }
+        button:active, .btn-submit:active { transform: scale(0.96); }
+        .toggle-btn { min-height: 28px; padding: 4px 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; background-color: transparent; color: #FF671F; border: 2px solid #FF671F; border-radius: 6px; cursor: pointer; transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease; }
+        .toggle-btn:hover { background-color: rgba(255, 103, 31, 0.08); box-shadow: 0 0 0 2px rgba(255, 103, 31, 0.35); }
+        
+
+        .cutting-tabs { overflow: hidden; border-bottom: 1px solid #444; background-color: #262626; border-radius: 8px 8px 0 0; margin-top: 25px; display: flex; }
+        .cutting-tabs button { background-color: transparent; border: none; color: #ccc; cursor: pointer; padding: 14px 20px; font-size: 14px; font-weight: 600; transition: 0.2s; flex: 1; text-align: center; border-radius: 0; min-height: 0; width: auto; }
+        .cutting-tabs button:hover { background-color: #323232; color: #FF671F; box-shadow: none; }
+        .cutting-tabs button.active { background-color: #323232 !important; border-bottom: 3px solid #FF671F; color: #FF671F !important; }
+        
+
+
+
+        .table-section { background-color: #262626; border: 1px solid #3d3d3d; border-radius: 0 0 8px 8px !important; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3); margin-top: 0 !important; border-top: none !important; }
+        .table-header { background-color: #2d2d2d; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .table-title-text { font-weight: bold; color: #aaa; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background-color: #212121; color: #FF671F; font-size: 12px; text-transform: uppercase; padding: 12px 15px; border-bottom: 1px solid #3d3d3d; user-select: none; }
+        td { padding: 12px 15px; border-bottom: 1px solid #333333; font-size: 13px; font-weight: 600; color: #ddd; vertical-align: middle; }
+        tr:hover td { background-color: #2b2b2b; }
+        .empty-msg { padding: 30px; text-align: center; color: #555; }
+        
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .material-comment span { font-style: italic; color: #00bef7; }
+        
+        .decor-wrapper { position: relative; width: 100%; height: 36px; background-color: #262626; border: 2px solid #FF671F; border-radius: 6px; box-sizing: border-box; }
+        .decor-input-main { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent !important; border: none !important; color: #FF671F !important; padding: 0 12px; box-sizing: border-box; outline: none; font-size: 13px; font-weight: 600; z-index: 2; }
+        .decor-input-hint { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent !important; border: none !important; color: #666666 !important; padding: 0 12px; box-sizing: border-box; outline: none; font-size: 13px; font-weight: 600; z-index: 1; pointer-events: none; white-space: pre; }
+
+    /* ФИКСИРОВАННАЯ НИЖНЯЯ ПАНЕЛЬ ИНСТРУМЕНТОВ */
+    .bottom-action-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background-color: #262626;
+        border-top: 2px solid #FF671F;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 30px;
+        z-index: 2000;
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+        transform: translateY(100%);
+        transition: transform 0.2s ease-in-out;
+    }
+    .bottom-action-bar.active {
+        transform: translateY(0);
+    }
+        .edit-input { height: 30px; padding: 0 8px; font-size: 12px; }
+
+/* ============================================================
+   📱 ИСПРАВЛЕННАЯ И БЕЗОПАСНАЯ МОБИЛЬНАЯ ВЕРСТКА ДЛЯ СМАРТФОНОВ
+   ============================================================ */
+   @media screen and (max-width: 600px) {
+    body { padding: 10px; }
+    h1 { font-size: 18px; margin-bottom: 15px; }
+    .form-section { padding: 12px; }
+    .form-grid { grid-template-columns: 1fr; gap: 10px; }
+    
+    /* Защищаем чекбоксы от растягивания по высоте */
+    input:not([type="checkbox"]), select, .decor-wrapper { height: 44px; }
+    .decor-input-main, .decor-input-hint { font-size: 15px; }
+    button, .btn-submit { min-height: 44px; font-size: 14px; }
+    
+    .cutting-tabs button { padding: 10px 5px; font-size: 12px; }
+    .table-header { flex-direction: column; align-items: stretch !important; gap: 10px; padding: 10px; }
+    #table-search { width: 100% !important; }
+
+    #materials-table, 
+    #materials-table thead, 
+    #materials-table tbody, 
+    #materials-table th, 
+    #materials-table td, 
+    #materials-table tr { 
+        display: block; 
+    }
+    
+    #materials-table thead tr { 
+        position: absolute; top: -9999px; left: -9999px;
+    }
+    
+    #materials-table tr[id^="row-"] {
+        background-color: #232323;
+        border: 1px solid #3d3d3d;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        padding: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        position: relative;
+    }
+
+    #materials-table td {
+        border: none; padding: 4px 0 !important; font-size: 14px; text-align: left !important;
+    }
+
+    /* 🧠 ИСПРАВЛЕНО: Горизонтальный контейнер в верхнем правом углу карточки */
+    #materials-table td:first-child {
+        display: inline-flex !important; /* Включаем флекс-ряд */
+        align-items: center !important;  /* Выравниваем карандаш и чекбокс строго по центру друг друга */
+        gap: 12px !important;            /* Зазор между карандашом и галочкой */
+        position: absolute; 
+        top: 12px; 
+        right: 12px; 
+        width: auto !important;          /* Убираем жесткую ширину, ряд растянется сам */
+        height: 24px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        z-index: 10;
+    }
+
+    /* Название материала (увеличили отступ справа, так как кнопок в углу теперь две) */
+    #materials-table td:nth-child(2) {
+        padding-right: 65px !important; border-bottom: 1px solid #333; padding-bottom: 8px !important; margin-bottom: 8px;
+    }
+
+    /* 🧠 ИСПРАВЛЕНО: Стили компактного карандаша (теперь он всегда слева от галочки) */
+    .mobile-edit-trigger {
+        display: inline-flex !important;
+        order: -1;                       /* ВАЖНО: Этот параметр принудительно ставит кнопку СЛЕВА от чекбокса в HTML-ряде */
+        margin-top: 0 !important;        /* Сбросили старый вертикальный маржин */
+        width: 24px !important;
+        height: 24px !important;
+        min-height: 24px !important;
+        background: transparent !important;
+        border: none !important; 
+        padding: 0 !important;
+        font-size: 16px !important;
+        cursor: pointer;
+        justify-content: center;
+        align-items: center;
+        box-shadow: none !important;
+        user-select: none;
+    }
+    .mobile-edit-trigger:hover {
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+
+
+    #materials-table .material-text {
+        font-size: 15px !important; color: #FF671F !important;
+    }
+
+    .material-len::before { content: "Длина хлыста L: "; color: #888; font-weight: normal; font-size: 12px; }
+    .material-len::after { content: " мм"; color: #fff; }
+    .material-qty::before { content: "Количество: "; color: #888; font-weight: normal; font-size: 12px; }
+
+    .material-len { display: inline-block !important; width: auto !important; color: #fff !important; }
+    
+    .material-qty {
+        display: block !important; float: right; text-align: right !important; color: #fff !important; width: auto !important;
+    }
+
+    /* 🧠 ИСПРАВЛЕНО: Полностью скрываем старый нижний блок с шумящими кнопками на телефонах */
+    td:last-child {
+        display: none !important;
+    }
+
+
+
+
+    /* Модальное окно редактирования погонажа */
+    #materials-table tr[id^="edit-form-row-"] {
+        display: none; position: fixed !important; top: 0 !important; left: 50% !important;
+        transform: translateX(-50%) !important; width: 100vw !important; height: 100vh !important;
+        background-color: rgba(26, 26, 26, 0.97) !important; z-index: 9999 !important;
+        margin: 0 !important; padding: 0 !important; box-sizing: border-box;
+    }
+
+    #materials-table tr[id^="edit-form-row-"] td {
+        display: flex !important; align-items: center !important; justify-content: center !important;
+        width: 100vw !important; height: 100vh !important; padding: 16px !important; box-sizing: border-box;
+    }
+
+    #materials-table tr[id^="edit-form-row-"] td > div {
+        background-color: #262626 !important; border: 2px solid #FF671F !important;
+        border-radius: 8px !important; padding: 20px !important; width: 100% !important;
+        max-width: 340px !important; box-shadow: 0 10px 30px rgba(0,0,0,0.9) !important;
+        display: flex !important; flex-direction: column !important; align-items: stretch !important;
+        gap: 12px !important; box-sizing: border-box !important;
+    }
+
+    #materials-table tr[id^="edit-form-row-"] label {
+        font-size: 11px !important; color: #888 !important; font-weight: 600;
+        text-transform: uppercase; margin-bottom: 2px; text-align: left !important;
+    }
+
+    #materials-table tr[id^="edit-form-row-"] input {
+        width: 100% !important; height: 42px !important; background-color: transparent !important;
+        color: #FF671F !important; border: 2px solid #FF671F !important; border-radius: 6px !important;
+        padding: 0 12px !important; font-size: 16px !important; box-sizing: border-box !important;
+    }
+
+    #materials-table tr[id^="edit-form-row-"] button {
+        margin: 0 !important; min-height: 42px !important; height: 42px !important; font-size: 14px !important; width: 100% !important;
+    }
+
+    /* Адаптивная нижняя панель */
+    .bottom-action-bar {
+        flex-direction: column !important; height: auto !important; padding: 10px 12px 14px 12px !important;
+        gap: 8px !important; background-color: #212121 !important;
+    }
+
+    .bottom-action-bar > div:first-child {
+        width: 100% !important; text-align: center !important; font-size: 13px !important; padding-bottom: 2px; border-bottom: 1px solid #333;
+    }
+
+    .bottom-action-bar > div:last-child {
+        width: 100% !important; display: flex !important; flex-direction: column !important; gap: 8px !important;
+    }
+
+    #bar-free-actions { width: 100% !important; gap: 2% !important; }
+    #bar-free-actions input { width: 73% !important; height: 38px !important; margin: 0 !important; box-sizing: border-box !important; flex: none !important; }
+    #bar-free-actions button { width: 25% !important; height: 38px !important; padding: 0 !important; white-space: nowrap; font-size: 11px !important; flex: none !important; }
+
+    #bar-reserved-actions { width: 100% !important; }
+    #bar-reserved-actions button { width: 100% !important; height: 38px !important; margin: 0 !important; box-sizing: border-box !important; }
+
+    .bottom-action-bar button:not([onclick*="mass-molding-reserve"]):not([onclick*="mass-molding-unreserve"]):not([onclick*="mass-reserve"]):not([onclick*="mass-unreserve"]) {
+        height: 36px !important; font-size: 12px !important; flex: 1 !important; padding: 0 !important; white-space: nowrap;
+    }
+
+    .bottom-action-bar div { display: flex !important; align-items: center !important; }
+    #mobile-select-all-container { display: flex !important; }
+    #mobile-select-all-container { border-radius: 0 0 0 0; }
+    .table-section { border-radius: 0 0 8px 8px !important; }
+}
+
+/* 🧠 ДОБАВЛЕНО: Прячем мобильный карандаш на больших мониторах, там будет стандартная кнопка */
+@media screen and (min-width: 601px) {
+    .mobile-edit-trigger {
+        display: none !important;
+    }
+}
+
+
+
+        @keyframes slideDown { from { top: -100px; opacity: 0; } to { top: 20px; opacity: 1; } }
+
+ /* ИСПРАВЛЕНО: Кастомные стильные чекбоксы строго по эталону */
+#materials-table input[type="checkbox"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+    min-height: 16px !important;
+    max-width: 16px !important;
+    max-height: 16px !important;
+    flex-shrink: 0 !important; /* Намертво защищает от сплющивания во flex-сетках */
+    border: 2px solid #FF671F;
+    border-radius: 4px;
+    background-color: transparent;
+    cursor: pointer;
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+#materials-table input[type="checkbox"]:checked {
+    background-color: #FF671F;
+}
+#materials-table input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    color: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+} 
+
+    </style>
+</head>
+<body>
+    
+    <!-- СТИЛЬНАЯ HTML-ПЛАШКА ПРЕДЛОЖЕНИЯ ПЕЧАТИ -->
+    <div id="print-toast" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background-color: #262626; border: 2px solid #FF671F; border-radius: 8px; padding: 15px 25px; z-index: 9999; box-shadow: 0 5px 25px rgba(0,0,0,0.6); align-items: center; gap: 20px; animation: slideDown 0.3s ease-out; box-sizing: border-box;">
+        <div style="display: flex; flex-direction: column; gap: 3px;">
+            <span style="color: #FF671F; font-weight: bold; font-size: 14px;">📦 МАТЕРИАЛ УСПЕШНО ДОБАВЛЕН!</span>
+            <span id="toast-material-name" style="color: #bbb; font-size: 13px; font-style: italic;">Название детали</span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button type="button" id="toast-print-btn" style="height: 32px; background-color: #FF671F; color: #fff; border: none; padding: 0 15px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 13px; width: auto; min-height: 0;">🖨 Печать</button>
+            <button type="button" onclick="closePrintToast()" style="height: 32px; background-color: transparent; border: 1px solid #555; color: #888; padding: 0 12px; border-radius: 4px; cursor: pointer; font-size: 13px; width: auto; min-height: 0;">Закрыть</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="nav-back" style="display: flex; gap: 10px; align-items: center;">
+            <a href="/">← Меню</a>
+            <a href="/sheets">Лист. мат.</a>
+            <a href="/trash">🗑 Корзина</a>
+        </div>
+        
+        
+        <!-- ДОБАВЛЕННЫЙ ЗАГОЛОВОК СТРАНИЦЫ С ОРАНЖЕВЫМ МАРКЕРОМ -->
+        <!-- СТАЛО: Заголовок и кнопка корзины для погонажа -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h1 style="margin: 0; font-size: 22px; color: #ccc; border-left: 4px solid #FF671F; padding-left: 10px;">Учет погонажных материалов</h1>
+            <!-- <a href="/trash" style="color: #f44336; text-decoration: none; font-size: 13px; font-weight: 600; border: 1px solid #f44336; padding: 4px 12px; border-radius: 4px; transition: background 0.15s;" onmouseover="this.style.backgroundColor='rgba(244, 67, 54, 0.08)'" onmouseout="this.style.backgroundColor='transparent'">🗑 Корзина</a> -->
+        </div>
+        
+
+
+        <div class="form-section">
+            <div class="form-header-container">
+                <div class="section-title">🛠 ПРИЕМКА ПОГОНАЖА / ХЛЫСТОВ</div>
+                <button type="button" class="toggle-btn" id="arrow-icon" onclick="toggleForm()">Добавить материал</button>
+            </div>
+            
+            <div id="add-form" style="margin-top: 20px; display: none;">
+                <form action="/add-molding" method="POST" autocomplete="off">
+                    <div class="form-grid">
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Материал (Наименование)</label>
+                            <input type="text" name="name" required placeholder="Профиль цокольный, столешница, кромка...">
+                        </div>
+                        <div class="form-group">
+                            <label>Артикул / Декор</label>
+                            <div class="decor-wrapper">
+                                <input type="text" id="decor-hint" class="decor-input-hint" readonly tabindex="-1">
+                                <!-- ❗ УБРАЛИ АТРИБУТ required ИЗ ИНПУТА НИЖЕ -->
+                                <input type="text" name="sku" id="decor-input" class="decor-input-main" placeholder="AGT 601, Forest Green">
+                            </div>
+                        </div>
+                        
+
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Длина L (мм)</label>
+                            <input type="number" name="length" placeholder="2800" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Количество (шт)</label>
+                            <input type="number" name="quantity" value="1" min="1" step="1" onkeypress="return event.charCode >= 48 && event.charCode <= 57" required>
+                        </div>
+                    </div>
+
+                    <div class="form-grid" style="margin-top: 15px;">
+                        <div class="form-group" style="grid-column: span 3;">
+                            <label>Комментарий / Пометка к хлысту</label>
+                            <input type="text" name="comment" placeholder="Стеллаж №2, нижняя полка, остаток от заказа кухни">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-submit">+ ДОБАВИТЬ НА СКЛАД</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="cutting-tabs">
+            <button id="tab-free" class="active" onclick="switchTab('free')">📦 Свободные материалы</button>
+            <button id="tab-reserved" onclick="switchTab('reserved')">🔒 В резерве</button>
+        </div>
+
+        <form id="mass-action-form" method="POST" action="">
+            <div class="table-section">
+                <div class="table-header">
+                    <span id="table-title-text" class="table-title-text">Свободные остатки погонажа</span>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <a href="/label-designer/molding" style="height: 32px; font-size: 12px; font-weight: 600; border: 2px solid #FF671F; color: #FF671F; padding: 0 10px; border-radius: 6px; display: inline-flex; align-items: center; text-decoration: none; white-space: nowrap;">⚙ Настройка бирки</a>
+                        <input type="search" id="table-search" autocomplete="off" placeholder="Поиск по погонажу..." onkeyup="filterTableData()" style="width: 180px; height: 32px; border-radius: 4px;">
+                    </div>
+                </div>
+<!-- МОБИЛЬНАЯ КНОПКА МАССОВОГО ВЫДЕЛЕНИЯ ПОГОНАЖА (ВИДИМА ТОЛЬКО НА ТЕЛЕФОНАХ) -->
+<div id="mobile-select-all-container" style="display: none; padding: 10px 15px; background-color: #212121; border-bottom: 1px solid #333; justify-content: space-between; align-items: center; box-sizing: border-box;">
+    <span style="font-size: 13px; color: #aaa; font-weight: 600;">Массовый выбор:</span>
+    <button type="button" id="mobile-select-all-btn" onclick="triggerMobileSelectAll()" style="width: auto; min-height: 28px; height: 28px; padding: 0 12px; font-size: 12px; border-color: #FF671F; color: #FF671F;">☑ Выбрать все</button>
+</div>
+
+                <table id="materials-table">
+<!-- ТУТ ТОЧЕЧНО ЗАМЕНЯЕМ ШАПКУ НА ДВУХЭТАЖНУЮ, ЧТОБЫ НИЧЕГО НЕ ДВИГАЛОСЬ И НЕ ПРЫГАЛО -->
+<thead>
+    <tr>
+        <th style="width: 5%; text-align: center; vertical-align: middle;">
+            <input type="checkbox" id="check-all" class="custom-checkbox" onclick="toggleAllCheckboxes(this)">
+        </th>
+        
+        <!-- Материал -->
+        <th onclick="sortTable(1, this, event)" style="cursor: pointer; text-align: left; color: #FF671F; vertical-align: bottom; padding-bottom: 8px;">
+            Наименование<br>
+            <span style="white-space: nowrap;">Материал <span class="sort-indicator">▲▼</span></span>
+        </th>
+        
+        <!-- Артикул -->
+        <th onclick="sortTable(2, this, event)" style="cursor: pointer; text-align: left; color: #FF671F; vertical-align: bottom; padding-bottom: 8px;">
+            Артикул /<br>
+            <span style="white-space: nowrap;">Декор <span class="sort-indicator">▲▼</span></span>
+        </th>
+
+        
+        <!-- Длина -->
+        <th onclick="sortTable(3, this, event)" style="cursor: pointer; text-align: center; width: 15%; color: #FF671F; vertical-align: bottom; padding-bottom: 8px;">
+            Длина<br>
+            <span style="white-space: nowrap;">(мм) <span class="sort-indicator">▲▼</span></span>
+        </th>
+        
+        <!-- Количество -->
+        <th onclick="sortTable(4, this, event)" style="cursor: pointer; text-align: center; width: 12%; color: #FF671F; vertical-align: bottom; padding-bottom: 8px;">
+            Кол-во<br>
+            <span style="white-space: nowrap;">(шт) <span class="sort-indicator">▲▼</span></span>
+        </th>
+        
+        <th style="text-align: right; padding-right: 25px; width: 20%; color: #FF671F; vertical-align: middle;">Действия</th>
+    </tr>
+</thead>
+
+
+
+                    
+                    <tbody>
+                        {% if materials %}
+                            {% for item in materials %}
+                            {% set is_reserved = item.status == 'В резерве' %}
+                            <!-- НАЙДИТЕ ЭТО МЕСТО В ТАБЛИЦЕ MOLDING.HTML И ДОБАВЬТЕ ОДНУ СТРОЧКУ КНОПКИ -->
+                            <tr id="row-{{ item.id }}" data-status="{{ 'reserved' if is_reserved else 'free' }}">
+                                <td style="text-align: center; vertical-align: middle;">
+                                    <input type="checkbox" name="selected_items" value="{{ item.id }}" class="custom-checkbox" onclick="updateMassActionBar()">
+                                    
+                                    <!-- 🧠 ДОБАВИЛИ: Компактный карандаш для телефонов, который встанет ровно под галочку -->
+                                    <button type="button" class="mobile-edit-trigger" title="Править размеры" onclick="showEditForm('{{ item.id }}', '{{ item.length }}', '{{ item.quantity }}', '{{ item.comment }}')">✏️</button>
+                                </td>
+                                
+
+
+                                <td style="text-align: left;">
+                                    <span class="material-text" style="font-weight: 600; color: #ddd; display: block;">{{ item.name }}</span>
+                                    <!-- СТАЛО (СТРОГО ПО ЭТАЛОНУ ЛИСТОВЫХ МАТЕРИАЛОВ) -->
+                                    {% if is_reserved %}
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                                        <span style="border: 1px solid #ff5500; color: #ff5500; font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: bold; text-transform: uppercase;">
+                                            РЕЗЕРВ
+                                        </span>
+                                        <span style="color: #777; font-size: 12px;">для:</span>
+                                        <span style="color: #00bef7; font-size: 12px; font-style: italic;">
+                                            {{ item.reserve_order if item.reserve_order else 'Не указан' }}
+                                        </span>
+                                    </div>
+                                    {% endif %}
+                                    <!-- ВЕРСТКА ТАБЛИЦЫ MOLDING.HTML — СТРОГО В ОДНУ СТРОКУ БЕЗ ПЕРЕНОСОВ -->
+                                    {% if item.comment and item.comment.strip() != "" %}
+                                    <div class="material-comment" style="margin-top: 4px; line-height: 1.4;"><span style="color: #777; font-size: 12px;">💬 Пометка:</span> <span style="color: #00bef7; font-size: 12px; font-style: italic;">{{ item.comment }}</span></div>
+                                    {% endif %}
+                                    
+                                    
+                                </td>
+                                
+                                
+                                <td style="text-align: left;">{{ item.sku }}</td>
+                                <td class="material-len" style="text-align: center; font-weight: bold; color: #bbb;">{{ item.length }}</td>
+                                <td class="material-qty" style="text-align: center; font-weight: bold; color: #bbb;">{{ item.quantity }}</td>
+                                
+                                <td style="text-align: right; padding-right: 25px;">
+                                    <div style="display: inline-flex; gap: 8px; justify-content: flex-end; width: 100%;">
+                                        <!-- <button type="button" style="min-height:30px; width: auto;" onclick="printLabel('{{ item.name }} {% if item.sku %}({{ item.sku }}){% endif %}', '{{ item.length }}', '0', '{{ item.id }}')">🖨 Бирка</button> -->
+                                        <button type="button" style="min-height:30px; width: auto;" onclick="showEditForm('{{ item.id }}', '{{ item.length }}', '{{ item.quantity }}', '{{ item.comment }}')">✏️ Править</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            
+                            <!-- ИНЛАЙН СТРОКА РЕДАКТИРОВАНИЯ ПОГОНАЖА -->
+                            <tr id="edit-form-row-{{ item.id }}" style="display: none; background-color: #212121;">
+                                <td colspan="6" style="padding: 10px 25px;">
+                                    <div style="display: flex; gap: 15px; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+                                        <span style="color: #FF671F; font-size: 13px; font-weight: bold;">Параметры погонажа:</span>
+                                        <div style="display: flex; flex-direction: column; gap: 2px;">
+                                            <label style="font-size: 10px; color: #888;">Длина L (мм)</label>
+                                            <input type="number" id="edit-len-{{ item.id }}" class="edit-input" style="width: 90px;">
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; gap: 2px;">
+                                            <label style="font-size: 10px; color: #888;">Кол-во (шт)</label>
+                                            <input type="number" id="edit-qty-{{ item.id }}" class="edit-input" style="width: 70px;">
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; gap: 2px;">
+                                            <label style="font-size: 10px; color: #888;">Комментарий / Пометка</label>
+                                            <input type="text" id="edit-comment-{{ item.id }}" class="edit-input" style="width: 220px;">
+                                        </div>
+                                        <button type="button" onclick="submitEditMolding('{{ item.id }}')" style="min-height: 30px; padding: 0 15px; margin-top: 12px; width: auto;">Сохранить</button>
+                                        <button type="button" onclick="closeRowForms('{{ item.id }}')" style="border-color: #777; color: #777; min-height: 30px; margin-top: 12px; width: auto;">Отмена</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr id="empty-row"><td colspan="6" class="empty-msg">Погонажных изделий на складе не обнаружено</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            
+<!-- ИСПРАВЛЕННАЯ НИЖНЯЯ ПАНЕЛЬ: ДОБАВИЛИ inline-flex ДЛЯ ЗАЩИТЫ ОТ СДВИГОВ КНОПОК -->
+<div id="mass-action-bar" class="bottom-action-bar">
+    <div style="font-size: 14px; font-weight: 600; color: #e0e0e0;">
+        Выбрано позиций: <span id="selected-count" style="color: #FF671F; font-weight: 800;">0</span>
+    </div>
+    <div style="display: flex; gap: 15px; align-items: center;">
+        <div id="bar-free-actions" style="display: flex; gap: 10px; align-items: center;">
+            <input type="text" name="mass_reserve_order" id="mass-reserve-order" autocomplete="off" placeholder="Имя заказа для резерва..." style="height: 34px; width: 200px; font-size: 13px;">
+            <button type="button" onclick="submitMassAction('/mass-molding-reserve')" style="height: 34px; min-height: 34px; padding: 0 15px; ;">🔒 В резерв</button>
+        </div>
+        
+        <!-- 🧠 ИСПРАВЛЕНО ТУТ: Заменили на inline-flex, чтобы кнопка внутри не ломала базовую линию строки при ховере -->
+        <div id="bar-reserved-actions" style="display: none;">
+            <button type="button" onclick="submitMassAction('/mass-molding-unreserve')" style="height: 34px; min-height: 34px; padding: 0 25px; min-width: 180px; font-weight: bold;">🔓 Снять с резерва</button>
+        </div>
+        
+        <button type="button" onclick="submitMassAction('/mass-molding-print')" style="height: 34px; min-height: 34px; border-color: #00bef7; color: #00bef7; padding: 0 20px; font-weight: bold;">🖨 Печать бирок</button>
+        <button type="button" onclick="submitMassAction('/mass-molding-delete')" style="height: 34px; min-height: 34px; border-color: #f44336; color: #f44336; padding: 0 20px;">🗑 Списать</button>
+
+
+        
+
+
+
+
+
+    </div>
+</div>
+
+            
+            
+
+        </form>
+    </div>
+
+    <script>
+        let currentTab = 'free';
+    
+    // ============================================================
+    // 1. СВЕРТЫВАНИЕ И РАЗВЕРТЫВАНИЕ ФОРМЫ ПРИЕМКИ ПОГОНАЖА
+    // ============================================================
+    function toggleForm() {
+        const form = document.getElementById('add-form');
+        const arrow = document.getElementById('arrow-icon');
+        if (form.style.display === 'none') {
+            form.style.display = 'block';
+            arrow.innerText = 'Свернуть';
+        } else {
+            form.style.display = 'none';
+            arrow.innerText = 'Добавить материал';
+        }
+    }
+    
+    // ============================================================
+    // 2. УМНОЕ АВТОДОПОЛНЕНИЕ ДЛЯ ДЕКОРОВ (ФОКУС НА ДЛИНУ)
+    // ============================================================
+    const decorInput = document.getElementById('decor-input');
+    const decorHint = document.getElementById('decor-hint');
+    let currentSuggestion = ""; 
+    let allMatches = [];      
+    let matchIndex = 0;       
+    let mobileContainer = null;
+    
+    if (decorInput) {
+        mobileContainer = document.createElement('div');
+        mobileContainer.id = 'mobile-decor-container';
+        mobileContainer.style.cssText = `
+            display: none; flex-direction: column; gap: 4px; margin-top: 6px;
+            background-color: #1e1e1e; border: 1px solid #3d3d3d; border-radius: 6px;
+            padding: 4px; max-height: 220px; overflow-y: auto; box-sizing: border-box;
+            animation: fadeIn 0.15s ease;
+        `;
+        
+        decorInput.closest('.decor-wrapper').parentNode.appendChild(mobileContainer);
+    
+        const style = document.createElement('style');
+        style.innerHTML = '@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }';
+        document.head.appendChild(style);
+    
+        const isMobile = window.matchMedia("(max-width: 600px)").matches;
+    
+        decorInput.addEventListener('input', function(e) {
+            const query = e.target.value;
+            if (!query.trim()) {
+                decorHint.value = "";
+                mobileContainer.style.display = 'none';
+                mobileContainer.innerHTML = "";
+                currentSuggestion = "";
+                allMatches = [];
+                matchIndex = 0;
+                return;
+            }
+    
+            fetch(`/api/suggest-decor?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(matches => {
+                    allMatches = matches || [];
+                    matchIndex = 0;
+                    if (allMatches.length > 0) {
+                        updateSuggestionView(query, isMobile);
+                    } else {
+                        decorHint.value = "";
+                        mobileContainer.style.display = 'none';
+                        mobileContainer.innerHTML = "";
+                        currentSuggestion = "";
+                    }
+                })
+                .catch(err => console.log("Ошибка автодополнения:", err));
+        });
+    
+        function updateSuggestionView(query, isMobileDevice) {
+            if (allMatches.length === 0) return;
+    
+            if (!isMobileDevice) {
+                const matchedText = allMatches[matchIndex];
+                currentSuggestion = matchedText;
+                const origLow = matchedText.toLowerCase();
+                const queryLow = query.toLowerCase();
+                if (origLow.startsWith(queryLow)) {
+                    decorHint.value = query + matchedText.slice(query.length);
+                } else {
+                    decorHint.value = matchedText;
+                }
+            } else {
+                mobileContainer.innerHTML = "";
+                mobileContainer.style.display = 'flex';
+                const top5Matches = allMatches.slice(0, 5);
+    
+                top5Matches.forEach(text => {
+                    const btn = document.createElement('div');
+                    btn.style.cssText = `
+                        background-color: #2d2d2d; border: 1px solid #444; color: #fff;
+                        border-radius: 4px; padding: 10px 12px; font-size: 13px; font-weight: bold;
+                        cursor: pointer; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+                    `;
+                    
+                    const regex = new RegExp(`(${query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
+                    const highlighted = text.replace(regex, '<span style="color: #FF671F;">$1</span>');
+                    btn.innerHTML = `💡 ${highlighted}`;
+    
+                    btn.addEventListener('click', () => {
+                        decorInput.value = text;
+                        mobileContainer.style.display = 'none';
+                        mobileContainer.innerHTML = "";
+                        allMatches = [];
+                        
+                        const nextInput = document.querySelector('input[name="length"]');
+                        if (nextInput) nextInput.focus();
+                    });
+                    mobileContainer.appendChild(btn);
+                });
+            }
+        }
+    
+        decorInput.addEventListener('keydown', function(e) {
+            const query = decorInput.value;
+            if (!isMobile && allMatches.length > 0) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    matchIndex = (matchIndex + 1) % allMatches.length;
+                    updateSuggestionView(query, false);
+                }
+                else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    matchIndex = (matchIndex - 1 + allMatches.length) % allMatches.length;
+                    updateSuggestionView(query, false);
+                }
+                else if ((e.key === 'ArrowRight' || e.key === 'Tab') && currentSuggestion) {
+                    if (decorInput.selectionStart === decorInput.value.length) {
+                        e.preventDefault(); 
+                        decorInput.value = currentSuggestion;
+                        decorHint.value = "";
+                        currentSuggestion = "";
+                        allMatches = [];
+                    }
+                }
+            }
+        });
+    
+        decorInput.addEventListener('blur', function() {
+            setTimeout(() => {
+                decorHint.value = "";
+                if (mobileContainer) mobileContainer.style.display = 'none';
+                currentSuggestion = "";
+            }, 250);
+        });
+    }
+    
+    const allInputs = document.querySelectorAll('#add-form input');
+    allInputs.forEach(input => {
+        input.addEventListener('focus', function() { this.select(); });
+        input.addEventListener('mouseup', function(e) { e.preventDefault(); });
+        input.addEventListener('touchend', function(e) { this.select(); });
+    });
+    
+    function closePrintToast() {
+        const toast = document.getElementById('print-toast');
+        if (toast) toast.style.display = 'none';
+    }
+    
+    // ============================================================
+    // 3. УПРАВЛЕНИЕ ВКЛАДКАМИ И ИЗОЛИРОВАННАЯ ФИЛЬТРАЦИЯ
+    // ============================================================
+    function switchTab(tabType) {
+        currentTab = tabType;
+        
+        // При ручной смене вкладки сброс галочек нужен и обоснован:
+        const checkAll = document.getElementById('check-all');
+        if (checkAll) checkAll.checked = false;
+        toggleAllCheckboxes(checkAll);
+    
+        const btnFree = document.getElementById('tab-free');
+        const btnRes = document.getElementById('tab-reserved');
+        const titleText = document.getElementById('table-title-text');
+        
+        if (btnFree) btnFree.classList.remove('active');
+        if (btnRes) btnRes.classList.remove('active');
+        
+        if (tabType === 'free') {
+            if (btnFree) btnFree.classList.add('active');
+            if (titleText) titleText.innerText = 'Свободные остатки погонажа';
+        } else {
+            if (btnRes) btnRes.classList.add('active');
+            if (titleText) titleText.innerText = 'Материалы зарезервированные под заказы';
+        }
+        filterTableData();
+    }
+    
+    // ============================================================
+    // 4. СКВОЗНОЙ ПОИСК ПО НАЗВАНИЮ И ПО ID
+    // ============================================================
+    function filterTableData() {
+        const searchInput = document.getElementById("table-search");
+        const filter = searchInput ? searchInput.value.toLowerCase().trim() : "";
+        const tr = document.querySelectorAll("#materials-table tbody tr[id^='row-']");
+        
+        tr.forEach(row => {
+            const status = row.getAttribute("data-status");
+            const text = row.textContent.toLowerCase();
+            const id = row.id.replace("row-", "").toLowerCase();
+            
+            const isMatchText = text.indexOf(filter) > -1;
+            const isMatchId = id.indexOf(filter) > -1;
+            const isMatch = isMatchText || isMatchId;
+            
+            const isCorrectTab = (currentTab === 'free' && status === 'free') || 
+                                 (currentTab === 'reserved' && status === 'reserved');
+            
+            row.style.display = (isMatch && isCorrectTab) ? "" : "none";
+            
+            if (row.style.display === "none") {
+                const rowId = row.id.replace("row-", "");
+                closeRowForms(rowId);
+            }
+        });
+        
+        if (typeof updateMassActionBar === "function") {
+            updateMassActionBar();
+        }
+    }
+    
+    // ============================================================
+    // 5. ИНЛАЙН ПРАВКИ И ЖИВОЕ ОБНОВЛЕНИЕ СЕРВЕРА
+    // ============================================================
+    function showEditForm(id, len, qty, comment) {
+        closeRowForms();
+        const editRow = document.getElementById('edit-form-row-' + id);
+        if (editRow) {
+            document.getElementById('edit-len-' + id).value = len;
+            document.getElementById('edit-qty-' + id).value = qty;
+            document.getElementById('edit-comment-' + id).value = comment;
+            
+            const isMobile = window.matchMedia("(max-width: 600px)").matches;
+            editRow.style.setProperty('display', isMobile ? 'block' : 'table-row', 'important');
+            editRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+    
+    function closeRowForms(id) {
+        if (id) {
+            const specificRow = document.getElementById('edit-form-row-' + id);
+            if (specificRow) specificRow.style.display = 'none';
+        } else {
+            document.querySelectorAll("tr[id^='edit-form-row-']").forEach(r => r.style.display = 'none');
+        }
+    }
+
+    // ===============================================================================
+    // 6. АСИНХРОННОЕ ФОНОВОЕ СОХРАНЕНИЕ ПОГОНАЖА С МАССОВОЙ ПРАВКОЙ КНОПОК
+    // ===============================================================================
+    function submitEditMolding(itemId) {
+        const length = document.getElementById('edit-len-' + itemId).value;
+        const quantity = document.getElementById('edit-qty-' + itemId).value;
+        const comment = document.getElementById('edit-comment-' + itemId).value;
+
+        if (!length || !quantity) { alert('Заполните размеры и количество!'); return; }
+
+        const formData = new FormData();
+        formData.append('length', length);
+        formData.append('quantity', quantity);
+        formData.append('comment', comment);
+
+        fetch('/edit-molding/' + itemId, { method: 'POST', body: formData })
+        .then(res => res.json())
+        .then(() => {
+            const row = document.getElementById('row-' + itemId);
+            let fullName = "Материал";
+            
+            if (row) {
+                row.querySelector('.material-len').innerText = length;
+                row.querySelector('.material-qty').innerText = quantity;
+                
+                const nameSpan = row.querySelector('.material-text');
+                if (nameSpan) {
+                    fullName = nameSpan.innerText.replace(/\s+/g, ' ').trim();
+                }
+                
+                let commentDiv = row.querySelector('.material-comment span');
+                if (commentDiv) {
+                    commentDiv.innerText = comment;
+                } else if (comment.trim() !== "") {
+                    window.location.reload();
+                    return;
+                }
+
+                // Перезаписываем параметры onclick НА ВСЕХ кнопках правки в строке (десктоп + скрытый карандаш)
+                const allEditButtons = row.querySelectorAll('[onclick^="showEditForm"]');
+                allEditButtons.forEach(btn => {
+                    const safeComment = comment.replace(/'/g, "\\'");
+                    btn.setAttribute("onclick", "showEditForm('" + itemId + "', '" + length + "', '" + quantity + "', '" + safeComment + "')");
+                });
+            }
+            
+            closeRowForms(itemId);
+            filterTableData();
+
+            const toast = document.getElementById('print-toast');
+            const toastName = document.getElementById('toast-material-name');
+            const printBtn = document.getElementById('toast-print-btn');
+
+            if (toast && toastName && printBtn) {
+                toastName.innerText = fullName + " (" + length + " мм)";
+                toast.style.setProperty('display', 'flex', 'important'); 
+
+                printBtn.onclick = function() {
+                    if (typeof printLabel === "function") {
+                        printLabel(fullName, length, "0", itemId);
+                    } else {
+                        alert("Ошибка: Функция printLabel не найдена в скриптах погонажа!");
+                    }
+                    closePrintToast(); 
+                };
+            }
+        })
+        .catch(err => alert("Ошибка связи со складом погонажа при сохранении!"));
+    }
+
+   
+    // ===============================================================================
+    // 8. СИНХРОНИЗИРОВАННЫЙ Virtual DOM ТАЙМЕР ПОГОНАЖА ПО ЭТАЛОНУ ЛИСТОВ (БЕЗ ЗАЛИПАНИЙ)
+    // ===============================================================================
+    // setInterval(() => {
+    //     const anyOpen = Array.from(document.querySelectorAll("tr[id^='edit-form-row-']")).some(r => r.style.display === 'table-row' || r.style.display === 'block');
+    //     if (anyOpen) return; 
+
+    //     // Намертво запоминаем все нажатые галочки ПЕРЕД тиком онлайна
+    //     const checkedIds = Array.from(document.querySelectorAll("#materials-table tbody input[name='selected_items']:checked")).map(cb => cb.value);
+        
+    //     // Запоминаем состояние главного чекбокса "Выбрать все"
+    //     const masterCheckbox = document.getElementById('check-all');
+    //     const isMasterChecked = masterCheckbox ? masterCheckbox.checked : false;
+
+    //     fetch('/api/molding')
+    //     .then(res => res.json())
+    //     .then(data => {
+    //         const materials = data.materials || [];
+    //         const table = document.getElementById("materials-table");
+    //         if (!table) return;
+    //         const tbody = table.getElementsByTagName("tbody")[0];
+    //         if (!tbody) return;
+
+    //         const serverIds = materials.map(item => 'row-' + item.id);
+
+    //         // Бесшумное удаление списанных позиций
+    //         const currentRows = Array.from(tbody.querySelectorAll('tr[id^="row-"]'));
+    //         currentRows.forEach(row => {
+    //             if (!serverIds.includes(row.id)) {
+    //                 const id = row.id.replace("row-", "");
+    //                 const editForm = document.getElementById("edit-form-row-" + id);
+    //                 if (editForm) editForm.remove(); 
+    //                 row.remove(); 
+    //             }
+    //         });
+
+    //         if (materials.length === 0) {
+    //             tbody.innerHTML = '<tr id="empty-row"><td colspan="6" class="empty-msg">Погонажных изделий на складе не обнаружено</td></tr>';
+    //             if (typeof updateMassActionBar === "function") updateMassActionBar();
+    //             return;
+    //         }
+
+    //         const emptyRow = document.getElementById("empty-row");
+    //         if (emptyRow) emptyRow.remove();
+
+    //         // Точечное фоновое обновление ячеек
+    //         materials.forEach(item => {
+    //             const rowId = 'row-' + item.id;
+    //             let row = document.getElementById(rowId);
+
+    //             const isReserved = item.status === 'В резерве';
+    //             const orderName = item.reserve_order ? item.reserve_order.trim() : "";
+
+    //             let reserveHtml = "";
+    //             if (isReserved) {
+    //                 reserveHtml = '<div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">' +
+    //                     '<span style="border: 1px solid #ff5500; color: #ff5500; font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: bold; text-transform: uppercase;">РЕЗЕРВ</span>' +
+    //                     '<span style="color: #777; font-size: 12px;">для:</span>' +
+    //                     '<span style="color: #00bef7; font-size: 12px; font-style: italic;">' + (orderName || 'Не указан') + '</span>' +
+    //                     '</div>';
+    //             }
+
+    //             let commentHtml = "";
+    //             if (item.comment && item.comment.trim() !== "") {
+    //                 commentHtml = '<div class="material-comment" style="margin-top: 4px; line-height: 1.4;">' +
+    //                     '<span style="color: #777; font-size: 12px;">💬 Пометка:</span> ' +  
+    //                     '<span style="color: #00bef7; font-size: 12px; font-style: italic;">' + item.comment + '</span>' +
+    //                     '</div>';
+    //             }
+
+    //             if (row) {
+    //                 row.setAttribute("data-status", isReserved ? 'reserved' : 'free');
+    //                 row.style.backgroundColor = 'transparent';
+
+    //                 const textTd = row.getElementsByTagName("td")[1];
+    //                 if (textTd) {
+    //                     textTd.innerHTML = '<span class="material-text" style="font-weight: 600; color: #ddd; display: block;">' + item.name + '</span>' + reserveHtml + commentHtml;
+    //                 }
+
+    //                 const skuTd = row.getElementsByTagName("td")[2];
+    //                 const lenTd = row.querySelector('.material-len');
+    //                 const qtyTd = row.querySelector('.material-qty');
+
+    //                 if (skuTd && skuTd.innerText !== String(item.sku)) skuTd.innerText = item.sku;
+    //                 if (lenTd && lenTd.innerText !== String(item.length)) lenTd.innerText = item.length;
+    //                 if (qtyTd && qtyTd.innerText !== String(item.quantity)) qtyTd.innerText = item.quantity;
+
+    //                 const rowCheckbox = row.querySelector('input[name="selected_items"]');
+    //                 if (rowCheckbox) {
+    //                     rowCheckbox.checked = checkedIds.includes(String(item.id));
+    //                 }
+
+    //                 const allEditButtons = row.querySelectorAll('[onclick^="showEditForm"]');
+    //                 allEditButtons.forEach(btn => {
+    //                     const safeComment = (item.comment || "").replace(/'/g, "\\'");
+    //                     btn.setAttribute("onclick", "showEditForm('" + item.id + "', '" + item.length + "', '" + item.quantity + "', '" + safeComment + "')");
+    //                 });
+    //             } else {
+    //                 const isItemChecked = checkedIds.includes(String(item.id)) ? 'checked' : '';
+    //                 const newRowHtml = '<tr id="row-' + item.id + '" data-status="' + (isReserved ? 'reserved' : 'free') + '">' +
+    //                     '<td style="text-align: center; vertical-align: middle;">' +
+    //                         '<input type="checkbox" name="selected_items" value="' + item.id + '" class="custom-checkbox" ' + isItemChecked + ' onclick="updateMassActionBar()">' +
+    //                         '<button type="button" class="mobile-edit-trigger" onclick="showEditForm(\'' + item.id + '\', \'' + item.length + '\', \'' + item.quantity + '\', \'' + (item.comment || "") + '\')">✏️</button>' +
+    //                     '</td>' +
+    //                     '<td style="text-align: left;"><span class="material-text" style="font-weight: 600; color: #ddd; display: block;">' + item.name + '</span>' + reserveHtml + commentHtml + '</td>' +
+    //                     '<td style="text-align: left;">' + (item.sku || "") + '</td>' +
+    //                     '<td class="material-len" style="text-align: center; font-weight: bold; color: #bbb;">' + item.length + '</td>' +
+    //                     '<td class="material-qty" style="text-align: center; font-weight: bold; color: #bbb;">' + item.quantity + '</td>' +
+    //                     '<td style="text-align: right; padding-right: 25px; vertical-align: middle;">' +
+    //                         '<div style="display: inline-flex; gap: 8px; justify-content: flex-end; width: 100%; white-space: nowrap;">' +
+    //                             '<button type="button" style="min-height:30px; width: auto;" onclick="showEditForm(\'' + item.id + '\', \'' + item.length + '\', \'' + item.quantity + '\', \'' + (item.comment || "") + '\')">✏️ Править</button>' +
+    //                         '</div>' +
+    //                     '</td>' +
+    //                 '</tr>' +
+    //                 '<tr id="edit-form-row-' + item.id + '" style="display: none; background-color: #212121;">' +
+    //                     '<td colspan="6" style="padding: 10px 25px;"><div style="display: flex; gap: 15px; justify-content: flex-end; align-items: center; flex-wrap: wrap;">' +
+    //                         '<span style="color: #FF671F; font-size: 13px; font-weight: bold;">Параметры погонажа:</span>' +
+    //                         '<div style="display: flex; flex-direction: column; gap: 2px;"><label style="font-size: 10px; color: #888;">Длина L (мм)</label><input type="number" id="edit-len-' + item.id + '" class="edit-input" style="width: 90px;"></div>' +
+    //                         '<div style="display: flex; flex-direction: column; gap: 2px;"><label style="font-size: 10px; color: #888;">Кол-во (шт)</label><input type="number" id="edit-qty-' + item.id + '" class="edit-input" style="width: 70px;"></div>' +
+    //                         '<div style="display: flex; flex-direction: column; gap: 2px;"><label style="font-size: 10px; color: #888;">Комментарий</label><input type="text" id="edit-comment-' + item.id + '" class="edit-input" style="width: 220px;"></div>' +
+    //                         '<button type="button" onclick="submitEditMolding(\'' + item.id + '\')" style="min-height: 30px; padding: 0 15px; margin-top: 12px; width: auto;">Сохранить</button>' +
+    //                         '<button type="button" onclick="closeRowForms(\'' + item.id + '\')" style="border-color: #777; color: #777; min-height: 30px; margin-top: 12px; width: auto;">Отмена</button>' +
+    //                     '</div></td>' +
+    //                 '</tr>';
+    //                 tbody.insertAdjacentHTML('beforeend', newRowHtml);
+    //             }
+    //         });
+
+    //         // 🧠 СИНХРОНИЗАЦИЯ САТЕМАТИЧЕСКУЮ СОРТИРОВКУ И ФИКС КЛАССА .sort-arrow ВНУТРИ ТАЙМЕРА
+    //         const activeHeader = document.querySelector("#materials-table thead th[data-dir]");
+    //         if (activeHeader) {
+    //             const direction = activeHeader.getAttribute("data-dir");
+    //             const thElements = Array.from(document.querySelectorAll("#materials-table thead th"));
+    //             const colIndex = thElements.indexOf(activeHeader);
+                
+    //             const allArrows = table.getElementsByClassName("sort-arrow");
+    //             for (let a of allArrows) { a.innerText = "▲▼"; }
+    //             const currentArrow = activeHeader.querySelector(".sort-arrow");
+    //             if (currentArrow) { currentArrow.innerText = (direction === "asc") ? "▲" : "▼"; }
+    //             let rows = Array.from(tbody.querySelectorAll('tr[id^="row-"]'));
+    //             rows.sort((rowA, rowB) => {
+    //                 const cellA = rowA.getElementsByTagName("td")[colIndex];
+    //                 const cellB = rowB.getElementsByTagName("td")[colIndex];
+    //                 if (!cellA || !cellB) return 0;
+    //                 let textA = cellA.innerText.trim();
+    //                 let textB = cellB.innerText.trim();
+
+    //                 if (colIndex === 3 || colIndex === 4) {
+    //                     let numA = parseFloat(textA.replace(/[^0-9.]/g, '')) || 0;
+    //                     let numB = parseFloat(textB.replace(/[^0-9.]/g, '')) || 0;
+    //                     return direction === "asc" ? numA - numB : numB - numA;
+    //                 }
+    //                 if (textA === textB) return direction === "asc" ? rowA.id.localeCompare(rowB.id) : rowB.id.localeCompare(rowA.id);
+    //                 return direction === "asc" ? textA.localeCompare(textB) : textB.localeCompare(textA);
+    //             });
+
+    //             rows.forEach(row => {
+    //                 tbody.appendChild(row);
+    //                 const id = row.id.replace("row-", "");
+    //                 const editForm = document.getElementById("edit-form-row-" + id);
+    //                 if (editForm) tbody.appendChild(editForm);
+    //             });
+    //         }
+
+    //         if (masterCheckbox) masterCheckbox.checked = isMasterChecked;
+    //         filterTableData();
+    //     })
+    //     .catch(() => console.log('Фоновое обновление заблокировано сетью'));
+    // }, 2000);
+
+    // ============================================================
+    // 9. АСИНХРОННАЯ ПЕЧАТЬ БИРКИ ПОГОНАЖА (BSMART БЭКЕНД)
+    // ============================================================
+    async function printLabel(name, length, width, itemId) {
+        try {
+            const response = await fetch('/api/print-label', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: name,
+                    length: parseInt(length, 10),
+                    width: parseInt(width, 10),
+                    item_id: itemId
+                })
+            });
+            
+            const data = await response.json();
+            if (!response.ok) {
+                alert(data.detail || 'Не удалось отправить бирку на принтер');
+                return;
+            }
+            alert(data.message || 'Бирка отправлена на печать');
+        } catch (err) {
+            console.error(err);
+            alert('Ошибка связи с сервером печати');
+        }
+    }
+
+    // ============================================================
+    // 10. МАССОВЫЕ ЧЕКБОКСЫ И ФОРМЫ ОТПРАВКИ
+    // ============================================================
+    function toggleAllCheckboxes(master) {
+        document.querySelectorAll("#materials-table tbody input[name='selected_items']").forEach(cb => {
+            if (cb.closest('tr').style.display !== 'none') {
+                cb.checked = master ? master.checked : false;
+            } else {
+                cb.checked = false;
+            }
+        });
+        updateMassActionBar();
+    }
+
+    function submitMassAction(url) {
+        const form = document.getElementById('mass-action-form');
+        if (form) {
+            form.action = url;
+            form.submit();
+        }
+    }
+
+    function triggerMobileSelectAll() {
+        const masterCheckbox = document.getElementById('check-all');
+        const mobileBtn = document.getElementById('mobile-select-all-btn');
+        if (!masterCheckbox || !mobileBtn) return;
+
+        masterCheckbox.checked = !masterCheckbox.checked;
+        toggleAllCheckboxes(masterCheckbox);
+        
+        if (masterCheckbox.checked) {
+            mobileBtn.innerText = "☒ Снять выделение";
+        } else {
+            mobileBtn.innerText = "☑ Выбрать все";
+        }
+    }
+
+    const originalSwitchTab = switchTab;
+    switchTab = function(tabType) {
+        if (typeof originalSwitchTab === "function") originalSwitchTab(tabType);
+        const mobileBtn = document.getElementById('mobile-select-all-btn');
+        if (mobileBtn) {
+            mobileBtn.innerText = "☑ Выбрать все";
+        }
+    };
+
+    // ===============================================================================
+    // 11. ИСПРАВЛЕННОЕ УМНОЕ ОБНОВЛЕНИЕ НИЖНЕЙ ПАНЕЛИ ДЕЙСТВИЙ (ПО ЭТАЛОНУ ЛИСТОВ)
+    // ===============================================================================
+    function updateMassActionBar() {
+        const table = document.getElementById("materials-table");
+        if (!table) return;
+        
+        const checkboxes = table.querySelectorAll('input[name="selected_items"]:checked');
+        const countSpan = document.getElementById('selected-count');
+        const actionBar = document.getElementById('mass-action-bar');
+        
+        if (countSpan) countSpan.innerText = checkboxes.length;
+        
+        if (actionBar) {
+            if (checkboxes.length > 0) {
+                actionBar.classList.add('active');
+                
+                let hasFree = false;
+                let hasReserved = false;
+                
+                checkboxes.forEach(cb => {
+                    const row = cb.closest('tr');
+                    if (row) {
+                        const status = row.getAttribute('data-status');
+                        if (status === 'reserved') {
+                            hasReserved = true;
+                        } else if (status === 'free') {
+                            hasFree = true;
+                        }
+                    }
+                });
+
+                const freeActions = document.getElementById('bar-free-actions');
+                const resActions = document.getElementById('bar-reserved-actions');
+                
+                const isMobile = window.matchMedia("(max-width: 600px)").matches;
+                const displayStyle = isMobile ? 'block' : 'flex';
+                
+                if (hasReserved && !hasFree) {
+                    if (freeActions) freeActions.style.setProperty('display', 'none', 'important');
+                    if (resActions) resActions.style.setProperty('display', displayStyle, 'important');
+                } else if (hasFree && !hasReserved) {
+                    if (freeActions) freeActions.style.setProperty('display', displayStyle, 'important');
+                    if (resActions) resActions.style.setProperty('display', 'none', 'important');
+                } else {
+                    if (freeActions) freeActions.style.setProperty('display', 'none', 'important');
+                    if (resActions) resActions.style.setProperty('display', 'none', 'important');
+                }
+                
+            } else {
+                actionBar.classList.remove('active');
+                const masterCheckbox = document.getElementById('check-all');
+                if (masterCheckbox) masterCheckbox.checked = false;
+                
+                const mobileBtn = document.getElementById('mobile-select-all-btn');
+                if (mobileBtn) mobileBtn.innerText = "☑ Выбрать все";
+            }
+        }
+    }
+
+    // ===============================================================================
+    // 12. БЕЗОПАСНЫЙ ВЫЗОВ ПЕЧАТИ ПОСЛЕ РЕДИРЕКТА И УМНЫЙ ПЕРЕХВАТ СКАНИРОВАНИЯ QR-КОДА
+    // ===============================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+        // 🧠 АВТО-СОРТИРОВКА ПРИ ВХОДЕ: Сразу заносим колонку Материала (Индекс 1) в стек по возрастанию
+        const materialHeader = document.querySelector("#materials-table thead th:nth-child(2)"); // Находит 2-й th (Материал)
+        if (materialHeader) {
+            sortStack = [{ colIndex: 1, dir: 'asc', thElement: materialHeader }];
+            renderSortIndicators(document.getElementById("materials-table"));
+            applyStackSorting(document.getElementsByTagName("tbody")[0]);
+        }
+        
+
+
+
+        filterTableData();
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        const addedId = urlParams.get('just_added_id');
+        if (addedId) {
+            setTimeout(() => {
+                const targetRow = document.getElementById('row-' + addedId);
+                if (targetRow) {
+                    const length = targetRow.querySelector('.material-len').innerText.trim();
+                    const nameSpan = targetRow.querySelector('.material-text');
+                    let cleanName = nameSpan ? nameSpan.innerText.replace(/\s+/g, ' ').trim() : 'Материал';
+
+                    const toast = document.getElementById('print-toast');
+                    const toastName = document.getElementById('toast-material-name');
+                    const printBtn = document.getElementById('toast-print-btn');
+
+                    if (toast && toastName && printBtn) {
+                        toastName.innerText = cleanName + " (" + length + " мм)";
+                        toast.style.setProperty('display', 'flex', 'important'); 
+
+                        printBtn.onclick = function() {
+                            if (typeof printLabel === "function") {
+                                printLabel(cleanName, length, "0", addedId);
+                            }
+                            closePrintToast(); 
+                        };
+                    }
+                }
+            }, 400); 
+
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.pushState({ path: newUrl }, '', newUrl);
+        }
+
+        const searchId = urlParams.get('search_id');
+        if (searchId) {
+            const searchInput = document.getElementById("table-search");
+            if (searchInput) {
+                searchInput.value = searchId.trim();
+                
+                const targetRow = document.getElementById('row-' + searchId.trim());
+                if (targetRow) {
+                    const status = targetRow.getAttribute('data-status'); 
+                    
+                    if (status === 'reserved' && typeof switchTab === "function") {
+                        switchTab('reserved');
+                    } else if (status === 'free' && typeof switchTab === "function") {
+                        switchTab('free');
+                    }
+                }
+                
+                filterTableData();
+                // Плавный скролл и оранжевая цеховая подсветка найденной позиции
+                setTimeout(() => {
+                    const updatedRow = document.getElementById('row-' + searchId.trim());
+                    if (updatedRow) {
+                        updatedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        updatedRow.style.transition = "background-color 0.4s ease";
+                        updatedRow.style.backgroundColor = "#ff5500"; // Вспышка оранжевым
+                        
+                        setTimeout(() => {
+                            // Возвращаем родной цвет вкладки
+                            const currentStatus = updatedRow.getAttribute('data-status');
+                            updatedRow.style.backgroundColor = (currentStatus === 'reserved') ? "#1c1c1c" : "transparent";
+                        }, 1200);
+                    }
+                }, 300);
+            }
+            
+            // Чистим адресную строку, чтобы при F5 поиск не залипал
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.pushState({ path: newUrl }, '', newUrl);
+        }
+    });
+    // ===============================================================================
+// 🧠 ГЛОБАЛЬНЫЙ СТЕК МУЛЬТИ-СОРТИРОВКИ ПОГОНАЖА (МНОГОУРОВНЕВЫЙ)
+// ===============================================================================
+let sortStack = []; // Хранит объекты вида: { colIndex: 1, dir: 'asc', thElement: th }
+
+function sortTable(colIndex, headerElement, event) {
+    const table = document.getElementById("materials-table");
+    if (!table) return;
+    const tbody = table.getElementsByTagName("tbody")[0];
+    if (!tbody) return;
+
+    const isShift = event && event.shiftKey;
+
+    if (!isShift) {
+        // -----------------------------------------------------------------------
+        // СЦЕНАРИЙ А: КЛИК БЕЗ SHIFT (Одиночная сортировка / Циклический сброс)
+        // -----------------------------------------------------------------------
+        const existing = sortStack.find(s => s.colIndex === colIndex);
+        let nextDir = 'asc';
+        
+        if (sortStack.length === 1 && existing) {
+            if (existing.dir === 'asc') nextDir = 'desc';
+            else nextDir = 'none'; // Третий клик — полная отмена сортировки
+        }
+
+        sortStack = []; // Очищаем весь прошлый мульти-стек
+        
+        if (nextDir !== 'none') {
+            sortStack.push({ colIndex: colIndex, dir: nextDir, thElement: headerElement });
+            headerElement.setAttribute("data-dir", nextDir);
+        } else {
+            headerElement.removeAttribute("data-dir");
+        }
+    } else {
+        // -----------------------------------------------------------------------
+        // СЦЕНАРИЙ Б: КЛИК С ЗАЖАТЫМ SHIFT (Мульти-сортировка)
+        // -----------------------------------------------------------------------
+        // Сначала убираем одиночный атрибут data-dir у всех, так как переходим в режим стека
+        table.querySelectorAll("thead th").forEach(th => th.removeAttribute("data-dir"));
+
+        const stackIndex = sortStack.findIndex(s => s.colIndex === colIndex);
+
+        if (stackIndex === -1) {
+            // Колонок нет в стеке — добавляем в конец (по возрастанию)
+            sortStack.push({ colIndex: colIndex, dir: 'asc', thElement: headerElement });
+        } else {
+            // Колонка уже есть в стеке
+            if (sortStack[stackIndex].dir === 'asc') {
+                // 1-й повторный клик: Переключаем на убывание
+                sortStack[stackIndex].dir = 'desc';
+            } else {
+                // 2-й повторный клик: Полностью удаляем из стека и пересчитываем индексы
+                sortStack.splice(stackIndex, 1);
+            }
+        }
+    }
+
+    // Рендерим стрелочки и индексы приоритета на UI шапки
+    renderSortIndicators(table);
+
+    // Вызываем физическую перестановку строк в DOM
+    applyStackSorting(tbody);
+}
+
+
+// ===============================================================================
+// ОРАНЖЕВЫЙ СИНХРОНИЗАТОР СТРЕЛОК И ИНДЕКСОВ ПРИОРИТЕТА В ШАПКЕ
+// ===============================================================================
+function renderSortIndicators(table) {
+    const allHeaders = table.querySelectorAll("thead th");
+    
+    allHeaders.forEach(th => {
+        const indicator = th.querySelector(".sort-indicator");
+        if (!indicator) return;
+
+        const colIndex = Array.from(allHeaders).indexOf(th);
+        const stackIndex = sortStack.findIndex(s => s.colIndex === colIndex);
+
+        // 🧠 ВСЕГДА ДЕРЖИМ ФИРМЕННЫЙ ОРАНЖЕВЫЙ ЦВЕТ ШАПКИ ЛДСП И ПОГОНАЖА
+        indicator.style.color = "#FF671F"; 
+
+        if (stackIndex === -1) {
+            // Колонка не активна — выводим базовые стрелки
+            indicator.innerText = "▲▼";
+        } else {
+            // Колонка активна в мульти-сорте
+            const item = sortStack[stackIndex];
+            const arrow = item.dir === 'asc' ? "▲" : "▼";
+            const indexMarker = sortStack.length > 1 ? " " + (stackIndex + 1) : "";
+            
+            // Записываем стрелочку и индекс приоритета
+            indicator.innerText = arrow + indexMarker;
+        }
+
+    });
+}
+
+
+// ===============================================================================
+// МАТЕМАТИЧЕСКИЙ ДВИЖОК МНОГОУРОВНЕВОЙ СОРТИРОВКИ СТРОК В ПАМЯТИ ВЫПРИМИТЕЛЯ
+// ===============================================================================
+function applyStackSorting(tbody) {
+    if (sortStack.length === 0) return;
+
+    let rows = Array.from(tbody.querySelectorAll('tr[id^="row-"]'));
+
+    rows.sort((rowA, rowB) => {
+        // Последовательно перебираем уровни сортировки из нашего стека приоритетов
+        for (let i = 0; i < sortStack.length; i++) {
+            const criterion = sortStack[i];
+            const colIndex = criterion.colIndex;
+            const direction = criterion.dir;
+
+            const cellA = rowA.getElementsByTagName("td")[colIndex];
+            const cellB = rowB.getElementsByTagName("td")[colIndex];
+            if (!cellA || !cellB) continue;
+
+            let textA = cellA.innerText.trim();
+            let textB = cellB.innerText.trim();
+
+            let comparison = 0;
+
+            // Числовые колонки: Длина (3) и Количество (4)
+            if (colIndex === 3 || colIndex === 4) {
+                let numA = parseFloat(textA.replace(/[^0-9.]/g, '')) || 0;
+                let numB = parseFloat(textB.replace(/[^0-9.]/g, '')) || 0;
+                comparison = numA - numB;
+            } else {
+                // Текстовые колонки: Наименование и Артикул
+                comparison = textA.localeCompare(textB);
+            }
+
+            // Если значения на текущем уровне не равны — возвращаем результат (с учетом направления)
+            if (comparison !== 0) {
+                return direction === "asc" ? comparison : -comparison;
+            }
+            // Если значения равны — цикл переходит к следующей колонке в стеке (например, к длине)
+        }
+        
+        // Если все уровни мульти-сортировки выдали равенство — жестко фиксируем по ID строки
+        return rowA.id.localeCompare(rowB.id);
+    });
+
+    // Накатываем строки и формы обратно в таблицу
+    rows.forEach(row => {
+        tbody.appendChild(row);
+        const id = row.id.replace("row-", "");
+        const editForm = document.getElementById("edit-form-row-" + id);
+        if (editForm) tbody.appendChild(editForm);
+    });
+
+    if (typeof filterTableData === "function") filterTableData();
+}
+
+// ===============================================================================
+// 8. СИНХРОНИЗИРОВАННЫЙ Virtual DOM ТАЙМЕР С АВТО-УДЕРЖАНИЕМ МУЛЬТИ-СОРТИРОВКИ
+// ===============================================================================
+setInterval(() => {
+    const anyOpen = Array.from(document.querySelectorAll("tr[id^='edit-form-row-']")).some(r => r.style.display === 'table-row' || r.style.display === 'block');
+    if (anyOpen) return; 
+
+    const checkedIds = Array.from(document.querySelectorAll("#materials-table tbody input[name='selected_items']:checked")).map(cb => cb.value);
+    const masterCheckbox = document.getElementById('check-all'); 
+    const isMasterChecked = masterCheckbox ? masterCheckbox.checked : false;
+
+    fetch('/api/molding')
+    .then(res => res.json())
+    .then(data => {
+        const materials = data.materials || []; 
+        const table = document.getElementById("materials-table"); 
+        if (!table) return;
+        const tbody = table.getElementsByTagName("tbody")[0]; 
+        if (!tbody) return;
+        
+        const serverIds = materials.map(item => 'row-' + item.id);
+
+        Array.from(tbody.querySelectorAll('tr[id^="row-"]')).forEach(row => {
+            if (!serverIds.includes(row.id)) { 
+                const id = row.id.replace("row-", ""); 
+                const f = document.getElementById("edit-form-row-" + id); 
+                if (f) f.remove(); 
+                row.remove(); 
+            }
+        });
+
+        if (materials.length === 0) { 
+            tbody.innerHTML = '<tr id="empty-row"><td colspan="6" class="empty-msg">Погонажных изделий на складе не обнаружено</td></tr>'; 
+            if (typeof updateMassActionBar === "function") updateMassActionBar(); 
+            return; 
+        }
+        const emptyRow = document.getElementById("empty-row"); 
+        if (emptyRow) emptyRow.remove();
+
+        materials.forEach(item => {
+            const rowId = 'row-' + item.id; 
+            let row = document.getElementById(rowId);
+            const isReserved = item.status === 'В резерве'; 
+            const orderName = item.reserve_order ? item.reserve_order.trim() : "";
+            let reserveHtml = isReserved ? '<div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;"><span style="border: 1px solid #ff5500; color: #ff5500; font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: bold; text-transform: uppercase;">РЕЗЕРВ</span><span style="color: #777; font-size: 12px;">для:</span><span style="color: #00bef7; font-size: 12px; font-style: italic;">' + (orderName || 'Не указан') + '</span></div>' : "";
+            let commentHtml = (item.comment && item.comment.trim() !== "") ? '<div class="material-comment" style="margin-top: 4px; line-height: 1.4;"><span style="color: #777; font-size: 12px;">💬 Пометка:</span> <span style="color: #00bef7; font-size: 12px; font-style: italic;">' + item.comment + '</span></div>' : "";
+
+            if (row) {
+                row.setAttribute("data-status", isReserved ? 'reserved' : 'free'); 
+                row.style.backgroundColor = 'transparent';
+                
+                const textTd = row.getElementsByTagName("td")[1]; 
+                if (textTd) textTd.innerHTML = '<span class="material-text" style="font-weight: 600; color: #ddd; display: block;">' + item.name + '</span>' + reserveHtml + commentHtml;
+                
+                const lenTd = row.querySelector('.material-len'), qtyTd = row.querySelector('.material-qty');
+                if (lenTd && lenTd.innerText !== String(item.length)) lenTd.innerText = item.length;
+                if (qtyTd && qtyTd.innerText !== String(item.quantity)) qtyTd.innerText = item.quantity;
+                
+                const rowCheckbox = row.querySelector('input[name="selected_items"]'); 
+                if (rowCheckbox) rowCheckbox.checked = checkedIds.includes(String(item.id));
+                
+                row.querySelectorAll('[onclick^="showEditForm"]').forEach(btn => btn.setAttribute("onclick", "showEditForm('" + item.id + "', '" + item.length + "', '" + item.quantity + "', '" + (item.comment || "").replace(/'/g, "\\'") + "')"));
+            } else {
+                // Генерация новой строки (включая компактный мобильный карандашик)
+                const isItemChecked = checkedIds.includes(String(item.id)) ? 'checked' : '';
+                const newRowHtml = '<tr id="row-' + item.id + '" data-status="' + (isReserved ? 'reserved' : 'free') + '">' +
+                    '<td style="text-align: center; vertical-align: middle;"><input type="checkbox" name="selected_items" value="' + item.id + '" class="custom-checkbox" ' + isItemChecked + ' onclick="updateMassActionBar()"><button type="button" class="mobile-edit-trigger" onclick="showEditForm(\'' + item.id + '\', \'' + item.length + '\', \'' + item.quantity + '\', \'' + (item.comment || "") + '\')">✏️</button></td>' +
+                    '<td style="text-align: left;"><span class="material-text" style="font-weight: 600; color: #ddd; display: block;">' + item.name + '</span>' + reserveHtml + commentHtml + '</td>' +
+                    '<td style="text-align: left;">' + (item.sku || "") + '</td>' +
+                    '<td class="material-len" style="text-align: center; font-weight: bold; color: #bbb;">' + item.length + '</td>' +
+                    '<td class="material-qty" style="text-align: center; font-weight: bold; color: #bbb;">' + item.quantity + '</td>' +
+                    '<td style="text-align: right; padding-right: 25px; vertical-align: middle;"><div style="display: inline-flex; gap: 8px; justify-content: flex-end; width: 100%; white-space: nowrap;"><button type="button" style="min-height:30px; width: auto;" onclick="showEditForm(\'' + item.id + '\', \'' + item.length + '\', \'' + item.quantity + '\', \'' + (item.comment || "") + '\')">✏️ Править</button></div></td>' +
+                '</tr>' +
+                '<tr id="edit-form-row-' + item.id + '" style="display: none; background-color: #212121;"><td colspan="6"><div style="display: flex; gap: 15px; justify-content: flex-end; align-items: center; flex-wrap: wrap;"><span style="color: #FF671F; font-size: 13px; font-weight: bold;">Параметры погонажа:</span><div style="display: flex; flex-direction: column; gap: 2px;"><label style="font-size: 10px; color: #888;">Длина L (мм)</label><input type="number" id="edit-len-' + item.id + '" class="edit-input" style="width: 90px;"></div><div style="display: flex; flex-direction: column; gap: 2px;"><label style="font-size: 10px; color: #888;">Кол-во (шт)</label><input type="number" id="edit-qty-' + item.id + '" class="edit-input" style="width: 70px;"></div><div style="display: flex; flex-direction: column; gap: 2px;"><label style="font-size: 10px; color: #888;">Комментарий</label><input type="text" id="edit-comment-' + item.id + '" class="edit-input" style="width: 220px;"></div><button type="button" onclick="submitEditMolding(\'' + item.id + '\')" style="min-height: 30px; padding: 0 15px; margin-top: 12px; width: auto;">Сохранить</button><button type="button" onclick="closeRowForms(\'' + item.id + '\')" style="border-color: #777; color: #777; min-height: 30px; margin-top: 12px; width: auto;">Отмена</button></div></td></tr>';
+                tbody.insertAdjacentHTML('beforeend', newRowHtml);
+            }
+        });
+
+        // 🧠 МУЛЬТИ-УДЕРЖАНИЕ СОРТИРОВКИ В ТАЙМЕРЕ: Пересчитываем стек и обновляем UI
+        renderSortIndicators(table);
+        applyStackSorting(tbody);
+
+        if (masterCheckbox) masterCheckbox.checked = isMasterChecked;
+    })
+    .catch(() => console.log('Фоновое обновление заблокировано сетью'));
+}, 2000);
+
+</script>
+</body>
+</html>
+

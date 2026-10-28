@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Корзина материалов</title>
+    <style>
+        /* ============================================================
+           ⚙️ ЭТАЛОННЫЙ СКРОЛЛБАР И ГЕОМЕТРИЯ ОКНА
+           ============================================================ */
+        html {
+            overflow-y: scroll; /* Вертикальный скроллбар отображается постоянно */
+            scrollbar-gutter: stable; /* Держит место под скроллбар всегда занятым */
+        }
+
+        html::-webkit-scrollbar, body::-webkit-scrollbar { width: 10px; height: 10px; }
+        html::-webkit-scrollbar-track, body::-webkit-scrollbar-track { background: #1e1e1e; border-left: 1px solid #333; }
+        html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb { background-color: #FF671F; border-radius: 6px; border: 2px solid #1e1e1e; }
+        html::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover { background-color: #ff8640; }
+        html::-webkit-scrollbar-corner, body::-webkit-scrollbar-corner { background: #1e1e1e; }
+
+        body { background-color: #1a1a1a; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .nav-back { margin-bottom: 20px; }
+        .nav-back a { color: #FF671F; text-decoration: none; font-size: 13px; font-weight: 600; border: 1px solid #FF671F; padding: 4px 10px; border-radius: 4px; transition: background 0.15s; }
+        .nav-back a:hover { background-color: rgba(255, 103, 31, 0.08); }
+        
+        h1 { font-size: 22px; margin-top: 15px; margin-bottom: 25px; color: #ccc; border-left: 4px solid #FF671F; padding-left: 10px; }
+        
+        /* ============================================================
+           📊 ТАБЛИЦА И ЭЛЕМЕНТЫ УДАЛЕННЫХ ПОЗИЦИЙ
+           ============================================================ */
+        .table-section { background-color: #262626; border: 1px solid #3d3d3d; border-radius: 8px !important; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3); margin-top: 0 !important; }
+        .table-header { background-color: #2d2d2d; font-weight: 600; color: #ccc; font-size: 14px; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background-color: #212121; color: #FF671F; font-size: 12px; text-transform: uppercase; padding: 12px 15px; border-bottom: 1px solid #3d3d3d; }
+        td { padding: 12px 15px; border-bottom: 1px solid #333333; font-size: 13px; font-weight: 600; color: #ddd; vertical-align: middle; }
+        tr:hover td { background-color: #2b2b2b; }
+/* Основной стиль заглушки для компьютеров */
+.empty-msg { 
+    padding: 50px 15px; 
+    text-align: center; 
+    color: #555; 
+    font-weight: bold; 
+    font-size: 14px;
+}
+
+
+        
+        /* Инструментальный стиль цеховых кнопок в строках */
+        button, .btn-action { height: 32px; min-height: 32px; max-height: 32px; padding: 0 14px; font-size: 13px; font-weight: 600; background-color: transparent; color: #FF671F; border: 2px solid #FF671F; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; box-sizing: border-box; transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease; }
+        button:hover, .btn-action:hover { background-color: rgba(255, 103, 31, 0.08); box-shadow: 0 0 0 2px rgba(255, 103, 31, 0.35); }
+        button:active, .btn-action:active { transform: scale(0.96); }
+        
+        .btn-danger { border-color: #f44336; color: #f44336; }
+        .btn-danger:hover { background-color: rgba(244, 67, 54, 0.08); box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.35); }
+        .btn-success { border-color: #4caf50; color: #4caf50; }
+        .btn-success:hover { background-color: rgba(76, 175, 80, 0.08); box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.35); }
+        
+        .type-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; border: 1px solid #777; color: #aaa; }
+        .trash-footer { padding: 15px 20px; background-color: #212121; display: flex; justify-content: flex-end; border-top: 1px solid #3d3d3d; }
+
+        /* ЭТАЛОННЫЕ КВАДРАТНЫЕ ЧЕКБОКСЫ */
+        .custom-checkbox { -webkit-appearance: none; appearance: none; width: 16px !important; height: 16px !important; min-width: 16px !important; min-height: 16px !important; max-width: 16px !important; max-height: 16px !important; background-color: #1a1a1a; border: 2px solid #FF671F; border-radius: 4px; cursor: pointer; display: inline-block; position: relative; box-sizing: border-box; outline: none; margin: 0; padding: 0; vertical-align: middle; flex-shrink: 0 !important; }
+        .custom-checkbox:checked { background-color: #FF671F; }
+        .custom-checkbox:checked::after { content: '✓'; position: absolute; color: #fff; font-size: 11px; font-weight: bold; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+
+        /* ВЫЕЗЖАЮЩАЯ НИЖНЯЯ ПАНЕЛЬ ДЛЯ КОРЗИНЫ */
+        .bottom-action-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background-color: #262626; border-top: 2px solid #FF671F; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; z-index: 2000; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); transform: translateY(100%); transition: transform 0.2s ease-in-out; box-sizing: border-box; }
+        .bottom-action-bar.active { transform: translateY(0); }
+
+        /* ============================================================
+           📱 ПОЛНАЯ АДАПТАЦИЯ КОРЗИНЫ ДЛЯ СМАРТФОНОВ
+           ============================================================ */
+        @media screen and (max-width: 600px) {
+            body { padding: 10px; }
+            h1 { font-size: 18px; margin-bottom: 15px; }
+            .table-section { border-radius: 8px !important; }
+            
+            table, thead, tbody, th, td, tr { display: block; }
+            thead tr { position: absolute; top: -9999px; left: -9999px; }
+            
+            tr { background-color: #232323; border: 1px solid #3d3d3d; border-radius: 8px; margin-bottom: 12px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); position: relative; }
+            td { border: none; padding: 4px 0 !important; font-size: 14px; text-align: left !important; }
+            
+            /* Чекбокс в верхний правый угол мобильной карточки */
+            td:first-child { position: absolute; top: 12px; right: 12px; width: 20px !important; height: 20px !important; display: inline-block !important; padding: 0 !important; margin: 0 !important; z-index: 10; }
+            
+            td:nth-child(2) { margin-bottom: 6px; }
+            
+            /* Смещение отступа названия под чекбокс */
+            td:nth-child(3) { padding-right: 30px !important; border-bottom: 1px solid #333; padding-bottom: 8px !important; margin-bottom: 6px; }
+            
+            td:nth-child(4)::before { content: "Количество: "; color: #888; font-weight: normal; font-size: 12px; }
+            
+            /* Кнопки действий на весь экран внизу мобильной карточки */
+            td:last-child { display: block !important; width: 100% !important; margin-top: 10px; padding-top: 8px !important; border-top: 1px solid #333; }
+            td:last-child div { display: flex !important; justify-content: space-between !important; width: 100% !important; gap: 10px; white-space: nowrap; }
+            td:last-child button { flex: 1; min-height: 38px !important; height: 38px !important; font-size: 13px !important; }
+
+            /* Адаптивная нижняя панель для смартфонов */
+            .bottom-action-bar { flex-direction: column !important; height: auto !important; padding: 10px 12px 14px 12px !important; gap: 8px !important; background-color: #212121 !important; }
+            .bottom-action-bar > div:first-child { width: 100% !important; text-align: center !important; font-size: 13px !important; padding-bottom: 2px; border-bottom: 1px solid #333; }
+            .bottom-action-bar > div:last-child { width: 100% !important; display: flex !important; gap: 10px !important; }
+            .bottom-action-bar button { flex: 1; height: 38px !important; min-height: 38px !important; font-size: 13px !important; }
+            #mobile-select-all-container { display: flex !important; }
+    /* Напишите это в самом низу секции @media screen and (max-width: 600px) перед закрывающей } */
+    #materials-table tr#empty-row {
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: block !important; /* 🧠 Добавили явный блок для строки-заглушки на телефонах */
+        width: 100% !important;
+    }
+
+    .empty-msg {
+        display: block !important;
+        text-align: center !important;
+        width: 100% !important;
+        box-sizing: border-box;
+        padding: 40px 15px !important;
+        background-color: #232323 !important;
+        border: 1px dashed #444 !important;
+        border-radius: 8px;
+    }
+
+
+    #trash-empty-msg {
+        display: block !important;
+        text-align: center !important;
+        width: 100% !important;
+        box-sizing: border-box;
+        padding: 40px 15px !important;
+        background-color: #232323 !important;
+        border: 1px dashed #444 !important;
+        border-radius: 8px;
+        color: #555 !important;
+        font-weight: bold;
+        font-size: 14px;
+        margin-top: 10px;
+    }
+
+        }
+    </style>
+
+</head>
+<body>
+    <div class="container">
+        
+        <!-- 📄 НАВИГАЦИЯ НА СКЛАДЕ ЛИСТОВ (Меню, Погонаж, Корзина) -->
+        <div class="nav-back" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <a href="/">← Меню</a>
+            <a href="/sheets">Лист. мат.</a>
+            <a href="/molding">Пог. мат.</a>
+        </div>
+        
+        <h1>Удаленные заготовки (Корзина)</h1>
+
+        <!-- ГЛАВНАЯ ФОРМА ДЛЯ МАССОВЫХ ДЕЙСТВИЙ -->
+        <form id="mass-trash-form" method="POST" action="">
+            
+            <!-- 🧠 ЧИСТАЯ, НЕЗАВИСИМАЯ КАРТОЧКА ДЛЯ СООБЩЕНИЯ О ПУСТОЙ КОРЗИНЕ -->
+            <div id="trash-empty-msg" class="empty-msg" style="display: none;">
+                Корзина пуста. Все списания удаляются только сюда!
+            </div>
+
+            <!-- 🧠 ОБЕРНУЛИ ВСЮ ТАБЛИЦУ В КОНТЕЙНЕР, КОТОРЫЙ МОЖНО СКРЫТЬ ЦЕЛИКОМ -->
+            <div id="trash-content" class="table-section" {% if not trash %}style="display: none;"{% endif %}>
+                <div class="table-header">
+                    <span style="font-weight: bold; color: #aaa; font-size: 14px;">История списанных материалов</span>
+                </div>
+                
+                <!-- КНОПКА МАССОВОГО ВЫБОРА ДЛЯ ТЕЛЕФОНОВ -->
+                <div id="mobile-select-all-container" style="display: none; padding: 10px 15px; background-color: #212121; border-bottom: 1px solid #333; justify-content: space-between; align-items: center; box-sizing: border-box;">
+                    <span style="font-size: 13px; color: #aaa; font-weight: 600;">Массовый выбор:</span>
+                    <button type="button" id="mobile-select-all-btn" onclick="triggerMobileSelectAll()" style="width: auto; min-height: 28px; height: 28px; padding: 0 12px; font-size: 12px; border-color: #FF671F; color: #FF671F;">☑ Выбрать все</button>
+                </div>
+
+                <table id="materials-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%; text-align: center;">
+                                <input type="checkbox" id="check-all" class="custom-checkbox" onclick="toggleAllCheckboxes(this)">
+                            </th>
+                            <th style="width: 15%;">Тип</th>
+                            <th>Наименование / Габариты</th>
+                            <th style="width: 15%;">Кол-во</th>
+                            <th style="text-align: right; padding-right: 25px; width: 25%;">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if trash %}
+                            {% for item in trash %}
+                            <tr id="row-{{ item.id }}">
+                                <td style="text-align: center; vertical-align: middle;">
+                                    <input type="checkbox" name="selected_items" value="{{ item.id }}" class="custom-checkbox" onclick="updateMassActionBar()">
+                                </td>
+                                <td>
+                                    {% if item.type == 'sheet' %}
+                                        <span class="type-badge" style="border-color: #00bef7; color: #00bef7;">Лист</span>
+                                    {% else %}
+                                        <span class="type-badge" style="border-color: #ff9800; color: #ff9800;">Погонаж</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span style="color: #eee; display: block; font-size: 14px;">
+                                        {% if item.type == 'sheet' %}
+                                            {{ item.category }} {{ item.thickness }}мм {{ item.name }} 
+                                            <span style="color: #888; font-size: 12px;">({{ item.length }}x{{ item.width }} мм)</span>
+                                        {% else %}
+                                            {{ item.name }} {% if item.sku %}({{ item.sku }}){% endif %}
+                                            <span style="color: #888; font-size: 12px;">({{ item.length }} мм)</span>
+                                        {% endif %}
+                                    </span>
+                                    {% if item.comment and item.comment.strip() != "" %}
+                                        <div class="material-comment" style="margin-top: 4px; line-height: 1.4;"><span style="color: #777; font-size: 12px;">💬 Пометка:</span> <span style="color: #00bef7; font-size: 12px; font-style: italic;">{{ item.comment }}</span></div>
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.quantity }} шт</td>
+                                <td style="text-align: right; padding-right: 25px; vertical-align: middle;">
+                                    <div style="display: inline-flex; gap: 8px; justify-content: flex-end; align-items: center; width: 100%; white-space: nowrap;">
+                                        <button type="submit" formaction="/trash/restore/{{ item.id }}" class="btn-success">🔄 Восстановить</button>
+                                        <button type="submit" formaction="/trash/delete/{{ item.id }}" onclick="return confirm('Удалить эту позицию навсегда?');" class="btn-danger">❌ Насовсем</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+                
+                {% if trash %}
+                    <div class="trash-footer">
+                        <button type="submit" formaction="/trash/clear" onclick="return confirm('Вы уверены, что хотите полностью очистить корзину? Это действие необратимо.');" class="btn-danger">🗑 Очистить корзину</button>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div id="mass-action-bar" class="bottom-action-bar">
+                <div style="font-size: 14px; font-weight: 600; color: #e0e0e0;">
+                    Выбрано материалов: <span id="selected-count" style="color: #FF671F; font-weight: 800;">0</span>
+                </div>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <button type="submit" formaction="/trash/mass-restore" class="btn-success" style="height: 34px;">🔄 Восстановить выбранное</button>
+                    <button type="submit" formaction="/trash/mass-delete-hard" onclick="return confirm('Удалить выбранные материалы навсегда?');" class="btn-danger" style="height: 34px;">❌ Удалить насовсем</button>
+                </div>
+            </div>
+        </form>
+
+</div>
+
+<script>
+
+
+    // ===============================================================================
+    // 1. ЖИВАЯ Virtual DOM СИНХРОНИЗАЦИЯ КОРЗИНЫ С СОХРАНЕНИЕМ ВСЕХ ГАЛОЧЕК
+    // ===============================================================================
+    setInterval(fetchLiveUpdates, 2000); // Запуск бесшумного цикла каждые 2 секунды
+
+
+// ===============================================================================
+// ИСПРАВЛЕННЫЙ ВЫБОР TBODY В ЦИКЛЕ СИНХРОНИЗАЦИИ КОРЗИНЫ
+// ===============================================================================
+function fetchLiveUpdates() {
+        const checkedIds = Array.from(document.querySelectorAll("#materials-table tbody input[name='selected_items']:checked")).map(cb => cb.value);
+        const masterCheckbox = document.getElementById('check-all');
+        const isMasterChecked = masterCheckbox ? masterCheckbox.checked : false;
+
+        fetch('/api/trash/live-data')
+            .then(response => response.json())
+            .then(data => {
+                const trashItems = data.trash || [];
+                
+                const trashContent = document.getElementById("trash-content");
+                const trashEmptyMsg = document.getElementById("trash-empty-msg");
+                const mobileSelectContainer = document.getElementById('mobile-select-all-container');
+
+                // 🧠 ШАГ 1: УМНОЕ ПЕРЕКЛЮЧЕНИЕ РЕЖИМОВ (ЕСЛИ КОРЗИНА ПУСТА)
+                if (trashItems.length === 0) {
+                    if (trashContent) trashContent.style.setProperty('display', 'none', 'important'); // Полностью прячем таблицу и все её рамки
+                    if (trashEmptyMsg) trashEmptyMsg.style.setProperty('display', 'block', 'important'); // Показываем одну чистую карточку
+                    if (mobileSelectContainer) mobileSelectContainer.style.setProperty('display', 'none', 'important'); // Прячем выбор для мобильных
+                    
+                    if (masterCheckbox) masterCheckbox.checked = false;
+                    updateMassActionBar();
+                    return; // Полностью останавливаем выполнение
+                }
+
+                // 🧠 ШАГ 2: ЕСЛИ МАТЕРИАЛЫ ЕСТЬ — ВКЛЮЧАЕМ ТАБЛИЦУ
+                if (trashContent) trashContent.style.setProperty('display', 'block', 'important');
+                if (trashEmptyMsg) trashEmptyMsg.style.setProperty('display', 'none', 'important');
+                
+                const isMobile = window.matchMedia("(max-width: 600px)").matches;
+                if (mobileSelectContainer) {
+                    mobileSelectContainer.style.setProperty('display', isMobile ? 'flex' : 'none', 'important');
+                }
+
+                const table = document.getElementById("materials-table");
+                if (!table) return;
+                const tbody = table.getElementsByTagName("tbody")[0];
+                if (!tbody) return;
+
+                const serverIds = trashItems.map(item => 'row-' + item.id);
+
+                // Бесшумное удаление восстановленных строк
+                const currentRows = Array.from(tbody.querySelectorAll('tr[id^="row-"]'));
+                currentRows.forEach(row => {
+                    if (!serverIds.includes(row.id)) {
+                        row.remove();
+                    }
+                });
+
+                // Точечное фоновое обновление ячеек
+                trashItems.forEach(item => {
+                    const rowId = 'row-' + item.id;
+                    let row = document.getElementById(rowId);
+
+                    let materialNameHtml = "";
+                    if (item.type === 'sheet') {
+                        materialNameHtml = item.category + ' ' + item.thickness + 'мм ' + item.name + 
+                            ' <span style="color: #888; font-size: 12px;">(' + item.length + 'x' + item.width + ' мм)</span>';
+                    } else {
+                        const skuStr = item.sku ? ' (' + item.sku + ')' : '';
+                        materialNameHtml = item.name + skuStr + ' <span style="color: #888; font-size: 12px;">(' + item.length + ' мм)</span>';
+                    }
+
+                    let commentHtml = "";
+                    if (item.comment && item.comment.trim() !== "") {
+                        commentHtml = '<div class="material-comment" style="margin-top: 4px; line-height: 1.4;"><span style="color: #777; font-size: 12px;">💬 Пометка:</span> <span style="color: #00bef7; font-size: 12px; font-style: italic;">' + item.comment + '</span></div>';
+                    }
+
+                    if (row) {
+                        const allCells = row.getElementsByTagName("td");
+                        if (allCells && allCells.length >= 5) {
+                            allCells[2].innerHTML = '<span style="color: #eee; display: block; font-size: 14px;">' + materialNameHtml + '</span>' + commentHtml;
+                            if (allCells[3].innerText !== item.quantity + " шт") {
+                                allCells[3].innerText = item.quantity + " шт";
+                            }
+                        }
+                        const rowCheckbox = row.querySelector('input[name="selected_items"]');
+                        if (rowCheckbox) {
+                            rowCheckbox.checked = checkedIds.includes(item.id);
+                        }
+                    } else {
+                        // Отрисовка новой строки
+                        const isItemChecked = checkedIds.includes(item.id) ? 'checked' : '';
+                        const badgeHtml = item.type === 'sheet' ? 
+                            '<span class="type-badge" style="border-color: #00bef7; color: #00bef7;">Лист</span>' : 
+                            '<span class="type-badge" style="border-color: #ff9800; color: #ff9800;">Погонаж</span>';
+
+                        const newRowHtml = '<tr id="row-' + item.id + '">' +
+                            '<td style="text-align: center; vertical-align: middle;"><input type="checkbox" name="selected_items" value="' + item.id + '" class="custom-checkbox" ' + isItemChecked + ' onclick="updateMassActionBar()"></td>' +
+                            '<td>' + badgeHtml + '</td>' +
+                            '<td><span style="color: #eee; display: block; font-size: 14px;">' + materialNameHtml + '</span>' + commentHtml + '</td>' +
+                            '<td>' + item.quantity + ' шт</td>' +
+                            '<td style="text-align: right; padding-right: 25px; vertical-align: middle;"><div style="display: inline-flex; gap: 8px; justify-content: flex-end; align-items: center; width: 100%; white-space: nowrap;">' +
+                                '<button type="submit" formaction="/trash/restore/' + item.id + '" class="btn-success">🔄 Восстановить</button>' +
+                                '<button type="submit" formaction="/trash/delete/' + item.id + '" onclick="return confirm(\'Удалить эту позицию навсегда?\');" class="btn-danger">❌ Насовсем</button>' +
+                            '</div></td>' +
+                        '</tr>';
+                        tbody.insertAdjacentHTML('beforeend', newRowHtml);
+                    }
+                });
+
+                if (masterCheckbox) masterCheckbox.checked = isMasterChecked;
+                updateMassActionBar();
+            })
+            .catch(() => console.log('Синхронизация корзины временно заблокирована сетью'));
+    }
+
+    // Запускаем первичный пересчет при старте страницы
+    window.addEventListener('DOMContentLoaded', () => {
+        fetchLiveUpdates();
+    });
+
+
+
+    // ===============================================================================
+    // 2. УПРАВЛЕНИЕ МАССОВЫМИ ЧЕКБОКСАМИ И СЧЕТЧИКАМИ
+    // ===============================================================================
+    function toggleAllCheckboxes(master) {
+        document.querySelectorAll("#materials-table tbody input[name='selected_items']").forEach(cb => {
+            cb.checked = master ? master.checked : false;
+        });
+        updateMassActionBar();
+    }
+
+    function updateMassActionBar() {
+        const checked = document.querySelectorAll("#materials-table tbody input[name='selected_items']:checked");
+        const countSpan = document.getElementById('selected-count');
+        if (countSpan) countSpan.innerText = checked.length;
+        
+        const bar = document.getElementById('mass-action-bar');
+        if (bar) {
+            if (checked.length > 0) {
+                bar.classList.add('active');
+            } else {
+                bar.classList.remove('active');
+                const masterCheckbox = document.getElementById('check-all');
+                if (masterCheckbox) masterCheckbox.checked = false;
+            }
+        }
+    }
+
+    function triggerMobileSelectAll() {
+        const masterCheckbox = document.getElementById('check-all');
+        const mobileBtn = document.getElementById('mobile-select-all-btn');
+        if (!masterCheckbox || !mobileBtn) return;
+
+        masterCheckbox.checked = !masterCheckbox.checked;
+        toggleAllCheckboxes(masterCheckbox);
+        
+        if (masterCheckbox.checked) {
+            mobileBtn.innerText = "☒ Снять выделение";
+        } else {
+            mobileBtn.innerText = "☑ Выбрать все";
+        }
+    }
+
+    // Запускаем первичную проверку кнопок при открытии страницы
+    window.addEventListener('DOMContentLoaded', () => {
+        updateMassActionBar();
+    });
+</script>
+
+</body>
+</html>
+ 
+
+

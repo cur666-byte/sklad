@@ -1,0 +1,452 @@
+<!-- templates/sheets.html -->
+<!-- Верхняя часть (Добавление материала) -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Листовые материалы</title>
+    <style>
+                html {
+    overflow-y: scroll; /* Вертикальный скроллбар отображается постоянно */
+}
+
+        html {
+    scrollbar-gutter: stable; /* Держит место под скроллбар всегда занятым */
+}
+
+        html::-webkit-scrollbar, body::-webkit-scrollbar { width: 10px; height: 10px; }
+        html::-webkit-scrollbar-track, body::-webkit-scrollbar-track { background: #1e1e1e; border-left: 1px solid #333; }
+        html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb { background-color: #FF671F; border-radius: 6px; border: 2px solid #1e1e1e; }
+        html::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover { background-color: #ff8640; }
+        html::-webkit-scrollbar-corner, body::-webkit-scrollbar-corner { background: #1e1e1e; }
+
+        body { background-color: #1a1a1a; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .nav-back { margin-bottom: 20px; }
+        .nav-back a { color: #FF671F; text-decoration: none; font-size: 13px; font-weight: 600; border: 1px solid #FF671F; padding: 4px 10px; border-radius: 4px; transition: background 0.15s; }
+        .nav-back a:hover { background-color: rgba(255, 103, 31, 0.08); }
+        h1 { font-size: 22px; margin-top: 15px; margin-bottom: 25px; color: #ccc; border-left: 4px solid #FF671F; padding-left: 10px; }
+        .form-section { background-color: #262626; border: 1px solid #3d3d3d; border-radius: 8px; padding: 20px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .form-header-container { display: flex; justify-content: space-between; align-items: center; user-select: none; margin-bottom: 0; }
+        .section-title { font-size: 14px; font-weight: 700; color: #FF671F; text-transform: uppercase; letter-spacing: 0.5px; margin: 0; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-size: 12px; color: #888; margin-bottom: 5px; font-weight: 600; }
+        
+        input, select { height: 36px; padding: 0 12px; font-size: 13px; font-weight: 600; background-color: transparent; color: #FF671F; border: 2px solid #FF671F; border-radius: 6px; box-sizing: border-box; transition: box-shadow 0.15s ease; width: 100%; }
+        input:focus, select:focus { outline: none; box-shadow: 0 0 0 2px rgba(255, 103, 31, 0.35); }
+        input::placeholder { color: #666; }
+        select option { background-color: #262626; color: #fff; }
+        button, .btn-submit { min-height: 36px; padding: 6px 14px; font-size: 13px; font-weight: 600; line-height: 1; background-color: transparent; color: #FF671F; border: 2px solid #FF671F; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; width: 100%; box-sizing: border-box; transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease; }
+        button:hover, .btn-submit:hover { background-color: rgba(255, 103, 31, 0.08); box-shadow: 0 0 0 2px rgba(255, 103, 31, 0.35); }
+        button:active, .btn-submit:active { transform: scale(0.96); }
+        .toggle-btn { min-height: 28px; padding: 4px 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; background-color: transparent; color: #FF671F; border: 2px solid #FF671F; border-radius: 6px; cursor: pointer; transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease; }
+        .toggle-btn:hover { background-color: rgba(255, 103, 31, 0.08); box-shadow: 0 0 0 2px rgba(255, 103, 31, 0.35); }
+        
+        .cutting-tabs { overflow: hidden; border-bottom: 1px solid #444; background-color: #262626; border-radius: 8px 8px 0 0; margin-top: 25px; display: flex; }
+        .cutting-tabs button { background-color: transparent; border: none; color: #ccc; cursor: pointer; padding: 14px 20px; font-size: 14px; font-weight: 600; transition: 0.2s; flex: 1; text-align: center; border-radius: 0; min-height: 0; width: auto; }
+        .cutting-tabs button:hover { background-color: #323232; color: #FF671F; box-shadow: none; }
+        .cutting-tabs button.active { background-color: #323232 !important; border-bottom: 3px solid #FF671F; color: #FF671F !important; }
+        
+        .table-section { background-color: #262626; border: 1px solid #3d3d3d; border-radius: 0 0 8px 8px !important; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3); margin-top: 0 !important; border-top: none !important; }
+        .table-header { background-color: #2d2d2d; font-weight: 600; color: #ccc; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background-color: #212121; color: #FF671F; font-size: 12px; text-transform: uppercase; padding: 12px 15px; border-bottom: 1px solid #3d3d3d; }
+        td { padding: 12px 15px; border-bottom: 1px solid #333333; font-size: 13px; font-weight: 600; color: #ddd; }
+        tr:hover td { background-color: #2b2b2b; }
+        .empty-msg { padding: 30px; text-align: center; color: #555; }
+
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        .decor-wrapper { position: relative; width: 100%; height: 36px; background-color: #262626; border: 2px solid #FF671F; border-radius: 6px; box-sizing: border-box; }
+        .decor-input-main { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent !important; border: none !important; color: #FF671F !important; padding: 0 12px; box-sizing: border-box; outline: none; font-size: 13px; font-weight: 600; z-index: 2; }
+        .decor-input-hint { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent !important; border: none !important; color: #666666 !important; padding: 0 12px; box-sizing: border-box; outline: none; font-size: 13px; font-weight: 600; z-index: 1; pointer-events: none; white-space: pre; }
+
+        /* ============================================================
+           📱 МОБИЛЬНЫЕ СТИЛИ (ДЛЯ СМАРТФОНОВ)
+           ============================================================ */
+        @media screen and (max-width: 600px) {
+            body { padding: 10px; }
+            h1 { font-size: 18px; margin-bottom: 15px; }
+            .form-section { padding: 12px; }
+            .form-grid { grid-template-columns: 1fr; gap: 10px; } /* Схлопываем форму в один столбец */
+            
+            /* Делаем элементы ввода выше, чтобы по ним было удобно тапать */
+            input, select, .decor-wrapper { height: 44px; }
+            .decor-input-main, .decor-input-hint { font-size: 15px; }
+            button, .btn-submit { min-height: 44px; font-size: 14px; }
+            
+            /* Оптимизация вкладок склада для узкого экрана */
+            .cutting-tabs button { padding: 10px 5px; font-size: 12px; }
+            
+            /* Стили для адаптивной мобильной таблицы (которая будет ниже) */
+            .table-header { flex-direction: column; align-items: stretch !important; gap: 10px; padding: 10px; }
+            #table-search { width: 100% !important; }
+        }
+@keyframes slideDown { from { top: -100px; opacity: 0; } to { top: 20px; opacity: 1; } }
+    </style>
+</head>
+
+<body>
+    <!-- СТИЛЬНАЯ HTML-ПЛАШКА ПРЕДЛОЖЕНИЯ ПЕЧАТИ (БЕЗОПАСНА ДЛЯ ЛЮБЫХ ПК) -->
+    <div id="print-toast" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background-color: #262626; border: 2px solid #FF671F; border-radius: 8px; padding: 15px 25px; z-index: 9999; box-shadow: 0 5px 25px rgba(0,0,0,0.6); align-items: center; gap: 20px; animation: slideDown 0.3s ease-out; box-sizing: border-box;">
+        <div style="display: flex; flex-direction: column; gap: 3px;">
+            <span style="color: #FF671F; font-weight: bold; font-size: 14px;">📦 МАТЕРИАЛ УСПЕШНО ДОБАВЛЕН!</span>
+            <span id="toast-material-name" style="color: #bbb; font-size: 13px; font-style: italic;">Название детали</span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button type="button" id="toast-print-btn" style="height: 32px; background-color: #FF671F; color: #fff; border: none; padding: 0 15px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 13px;">🖨 Печать</button>
+            <button type="button" onclick="closePrintToast()" style="height: 32px; background-color: transparent; border: 1px solid #555; color: #888; padding: 0 12px; border-radius: 4px; cursor: pointer; font-size: 13px;">Закрыть</button>
+        </div>
+    </div>
+    
+    
+    
+    <div class="container">
+        <!-- 📄 НАВИГАЦИЯ НА СКЛАДЕ ЛИСТОВ (Добавлен быстрый переход в погонаж) -->
+        <div class="nav-back" style="display: flex; gap: 10px; align-items: center;">
+            <a href="/">← Меню</a>
+            <a href="/molding">Пог. мат.</a>
+            <a href="/trash">🗑 Корзина</a>
+            
+        </div>
+        
+        <!-- СТАЛО: Заголовок и кнопка корзины в один ряд -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h1 style="margin: 0; font-size: 22px; color: #ccc; border-left: 4px solid #FF671F; padding-left: 10px;">Учет листовых материалов</h1>
+            <!-- <a href="/trash" style="color: #f44336; text-decoration: none; font-size: 13px; font-weight: 600; border: 1px solid #f44336; padding: 4px 12px; border-radius: 4px; transition: background 0.15s;" onmouseover="this.style.backgroundColor='rgba(244, 67, 54, 0.08)'" onmouseout="this.style.backgroundColor='transparent'">🗑 Корзина</a> -->
+        </div>
+        
+        
+        
+        <div class="form-section">
+            <div class="form-header-container">
+                <div class="section-title">🛠 ПРИЕМКА ЗАГОТОВКИ / ОБРЕЗКА</div>
+                <button type="button" class="toggle-btn" id="arrow-icon" onclick="toggleForm()">Добавить материал</button>
+            </div>
+            <div id="add-form" style="margin-top: 20px; display: none;">
+                <!-- Отключаем историю браузера autocomplete="off" -->
+                <form action="/add-sheet" method="POST" autocomplete="off">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Тип материала</label>
+                            <select name="category" required>
+                                <option value="ЛДСП">ЛДСП</option>
+                                <option value="ЛМДФ">ЛМДФ</option>
+                                <option value="HPL">HPL</option>
+                                <option value="ЛХДФ">ЛХДФ</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Название / Декор</label>
+                            <div class="decor-wrapper">
+                                <!-- Подложка с серым угаданным текстом -->
+                                <input type="text" id="decor-hint" class="decor-input-hint" readonly tabindex="-1">
+                                <!-- Рабочий инпут поверх подложки -->
+                                <input type="text" name="name" id="decor-input" class="decor-input-main" placeholder="Дуб Галифакс" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Толщина (мм)</label>
+                            <!-- Установили значение 16 по умолчанию -->
+                            <input type="number" name="thickness" value="16" required>
+                        </div>
+                        
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Длина (мм)</label>
+                            <input type="number" name="length" placeholder="2800" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Ширина (мм)</label>
+                            <input type="number" name="width" placeholder="2070" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Количество (шт)</label>
+                            <input type="number" name="quantity" value="1" min="1" step="1" onkeypress="return event.charCode >= 48 && event.charCode <= 57" required>
+                        </div>
+                    </div>
+                    <!-- Добавили полноценное поле комментария для приемки заготовок (В ЕДИНОМ СТИЛЕ) -->
+                    <div class="form-grid" style="margin-top: 15px;">
+                        <div class="form-group" style="grid-column: span 3;">
+                            <label>Комментарий / Пометка к обрезку</label>
+                            
+                            <!-- Убрали ломающие ручные рамки и цвета, оставив наследование из CSS -->
+                            <input type="text" name="comment" placeholder="Царапина на углу, лежит на полке №3, остаток от заказа кухни" style="box-sizing: border-box;">
+                        </div>
+                    </div>
+
+                        
+                    
+                    <button type="submit" class="btn-submit">+ ДОБАВИТЬ НА СКЛАД</button>
+                </form>
+            </div>
+        </div>
+
+        {% include 'table.html' %}
+    </div>
+
+    <script>
+        // 1. СВОРУЧИВАНИЕ И РАЗВОРАЧИВАНИЕ ФОРМЫ (Ваша оригинальная функция)
+        function toggleForm() {
+            const form = document.getElementById('add-form');
+            const arrow = document.getElementById('arrow-icon');
+            if (form.style.display === 'none') {
+                form.style.display = 'block';
+                arrow.innerText = 'Свернуть';
+            } else {
+                form.style.display = 'none';
+                arrow.innerText = 'Добавить материал';
+            }
+        }
+
+// ============================================================
+// 2. УМНОЕ АВТОДОПОЛНЕНИЕ ДЛЯ ПК (СТРЕЛКА ВНИЗ) + 5 ВАРИАНТОВ ДЛЯ ТЕЛЕФОНОВ
+// ============================================================
+const decorInput = document.getElementById('decor-input');
+const decorHint = document.getElementById('decor-hint');
+let currentSuggestion = ""; 
+let allMatches = [];      // Список всех найденных декоров
+let matchIndex = 0;       // Текущий индекс перебора вариантов для ПК
+
+if (decorInput) {
+    // 1. Создаем мобильный контейнер для 5 вариантов динамически
+    const mobileContainer = document.createElement('div');
+    mobileContainer.id = 'mobile-decor-container';
+    mobileContainer.style.cssText = `
+        display: none;
+        flex-direction: column;
+        gap: 4px;
+        margin-top: 6px;
+        background-color: #1e1e1e;
+        border: 1px solid #3d3d3d;
+        border-radius: 6px;
+        padding: 4px;
+        max-height: 220px;
+        overflow-y: auto;
+        box-sizing: border-box;
+        animation: fadeIn 0.15s ease;
+    `;
+    
+    decorInput.closest('.decor-wrapper').parentNode.appendChild(mobileContainer);
+
+    const style = document.createElement('style');
+    style.innerHTML = '@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }';
+    document.head.appendChild(style);
+
+    const isMobile = window.matchMedia("(max-width: 600px)").matches;
+
+    // Живой поиск
+    decorInput.addEventListener('input', function(e) {
+        const query = e.target.value;
+        
+        if (!query.trim()) {
+            decorHint.value = "";
+            mobileContainer.style.display = 'none';
+            mobileContainer.innerHTML = "";
+            currentSuggestion = "";
+            allMatches = [];
+            matchIndex = 0;
+            return;
+        }
+
+        fetch(`/api/suggest-decor?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(matches => {
+                allMatches = matches || [];
+                matchIndex = 0;
+
+                if (allMatches.length > 0) {
+                    updateSuggestionView(query);
+                } else {
+                    decorHint.value = "";
+                    mobileContainer.style.display = 'none';
+                    mobileContainer.innerHTML = "";
+                    currentSuggestion = "";
+                }
+            })
+            .catch(err => console.log("Ошибка автодополнения:", err));
+    });
+
+    // Функция отрисовки подсказок
+    function updateSuggestionView(query) {
+        if (allMatches.length === 0) return;
+
+        if (!isMobile) {
+            // ЛОГИКА ДЛЯ ПК: Оставляем серый текст подложки
+            const matchedText = allMatches[matchIndex];
+            currentSuggestion = matchedText;
+
+            const origLow = matchedText.toLowerCase();
+            const queryLow = query.toLowerCase();
+            if (origLow.startsWith(queryLow)) {
+                decorHint.value = query + matchedText.slice(query.length);
+            } else {
+                decorHint.value = matchedText;
+            }
+        } else {
+            // ЛОГИКА ДЛЯ СМАРТФОНОВ: Выводим список строго до 5 вариантов
+            mobileContainer.innerHTML = "";
+            mobileContainer.style.display = 'flex';
+
+            // Берем первые 5 совпадений из массива
+            const top5Matches = allMatches.slice(0, 5);
+
+            top5Matches.forEach(text => {
+                const btn = document.createElement('div');
+                btn.style.cssText = `
+                    background-color: #2d2d2d;
+                    border: 1px solid #444;
+                    color: #fff;
+                    border-radius: 4px;
+                    padding: 10px 12px;
+                    font-size: 13px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    text-align: left;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                `;
+                
+                // Подсвечиваем совпадения букв оранжевым для удобства кладовщика
+                const regex = new RegExp(`(${query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
+                const highlighted = text.replace(regex, '<span style="color: #FF671F;">\$1</span>');
+                btn.innerHTML = `💡 ${highlighted}`;
+
+                // При тапе пальцем по любому из 5 вариантов
+                btn.addEventListener('click', () => {
+                    decorInput.value = text;
+                    mobileContainer.style.display = 'none';
+                    mobileContainer.innerHTML = "";
+                    allMatches = [];
+                    
+                    // Автофокус на толщину
+                    const nextInput = document.querySelector('input[name="thickness"]');
+                    if (nextInput) nextInput.focus();
+                });
+
+                mobileContainer.appendChild(btn);
+            });
+        }
+    }
+
+    // ОБРАБОТЧИК КЛАВИАТУРЫ ДЛЯ ПК (Tab, Вправо, Вверх, Вниз)
+    decorInput.addEventListener('keydown', function(e) {
+        const query = decorInput.value;
+
+        if (!isMobile && allMatches.length > 0) {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                matchIndex = (matchIndex + 1) % allMatches.length;
+                updateSuggestionView(query);
+            }
+            else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                matchIndex = (matchIndex - 1 + allMatches.length) % allMatches.length;
+                updateSuggestionView(query);
+            }
+            else if ((e.key === 'ArrowRight' || e.key === 'Tab') && currentSuggestion) {
+                if (decorInput.selectionStart === decorInput.value.length) {
+                    e.preventDefault(); 
+                    decorInput.value = currentSuggestion;
+                    decorHint.value = "";
+                    currentSuggestion = "";
+                    allMatches = [];
+                }
+            }
+        }
+    });
+
+    // Закрытие мобильного меню при потере фокуса
+    decorInput.addEventListener('blur', function() {
+        setTimeout(() => {
+            decorHint.value = "";
+            if (isMobile) {
+                mobileContainer.style.display = 'none';
+            }
+            currentSuggestion = "";
+        }, 250); // Небольшая задержка, чтобы тап по кнопке успел сработать
+    });
+}
+
+
+        // 3. АВТОМАТИЧЕСКОЕ ВЫДЕЛЕНИЕ ВСЕГО ТЕКСТА ПРИ КЛИКЕ (ФОКУСЕ)
+        // Находим все поля ввода в нашей форме приема заготовок
+        const allInputs = document.querySelectorAll('#add-form input');
+        
+        allInputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                // Выделяем весь текст внутри поля за один миг
+                this.select();
+            });
+            
+            // Специальный фикс для мобильных телефонов (чтобы выделение не сбрасывалось при отпускании пальца)
+            input.addEventListener('mouseup', function(e) {
+                e.preventDefault();
+            });
+            input.addEventListener('touchend', function(e) {
+                // На смартфонах select() тоже сработает железно
+                this.select();
+            });
+        });
+    // Функция закрытия всплывающего окна
+    function closePrintToast() {
+        const toast = document.getElementById('print-toast');
+        if (toast) toast.style.display = 'none';
+    }
+
+    // ============================================================
+    // БЕЗОПАСНЫЙ ВЫЗОВ ПЕЧАТИ ПОСЛЕ ПЕРЕЗАГРУЗКИ СТРАНИЦЫ
+    // ============================================================
+    window.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const addedId = urlParams.get('just_added_id');
+        
+        if (addedId) {
+            setTimeout(() => {
+                // Находим строку новой заготовки в таблице остатков
+                const targetRow = document.getElementById('row-' + addedId);
+                if (targetRow) {
+                    const length = targetRow.querySelector('.material-len').innerText.trim();
+                    const width = targetRow.querySelector('.material-width').innerText.trim();
+
+                    // 🧠 ЧИСТЫЙ СБОР ИМЕНИ: Берем только текст из верхнего span, игнорируя блоки резерва и комментов
+                    const nameSpan = targetRow.querySelector('.material-text');
+                    let cleanName = nameSpan ? nameSpan.innerText.replace(/\s+/g, ' ').trim() : 'Материал';
+
+                    // Находим элементы нашей оранжевой HTML-плашки
+                    const toast = document.getElementById('print-toast');
+                    const toastName = document.getElementById('toast-material-name');
+                    const printBtn = document.getElementById('toast-print-btn');
+
+                    if (toast && toastName && printBtn) {
+                        toastName.innerText = cleanName + " (" + length + "x" + width + " мм)";
+                        toast.style.setProperty('display', 'flex', 'important'); // Мягко выкатываем плашку
+
+                        // Привязываем вызов вашей асинхронной функции печати BSmart
+                        printBtn.onclick = function() {
+                            if (typeof printLabel === "function") {
+                                // Передаем на бэкенд идеально чистые параметры
+                                printLabel(cleanName, length, width, addedId);
+                            } else {
+                                alert("Ошибка: Функция printLabel не найдена в скриптах!");
+                            }
+                            closePrintToast(); // Прячем плашку после успешного клика
+                        };
+                    }
+                }
+            }, 400); // Даем таблице спокойно прогрузиться по локальной сети
+
+            // Мгновенно чистим адресную строку браузера, чтобы при ручном обновлении страницы поиск не залипал
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.pushState({ path: newUrl }, '', newUrl);
+        }
+    });
+
+</script>
+
+</body>
+</html>

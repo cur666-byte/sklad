@@ -1,0 +1,148 @@
+<!-- templates/menu.html -->
+ <!-- Меню -->
+ <!DOCTYPE html>
+ <html lang="ru">
+ <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>Склад материалов мебельщика — Меню</title>
+     <style>
+         body {
+             background-color: #1a1a1a;
+             color: #ffffff;
+             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             min-height: 100vh;
+             margin: 0;
+             padding: 16px;
+             box-sizing: border-box;
+         }
+         .menu-card {
+             background-color: #262626;
+             border: 1px solid #3d3d3d;
+             border-radius: 8px;
+             padding: 30px;
+             width: 100%;
+             max-width: 400px;
+             box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+             text-align: center;
+         }
+         .company-title {
+             color: #FF671F;
+             font-size: 13px;
+             font-weight: 700;
+             text-transform: uppercase;
+             letter-spacing: 1.5px;
+             margin-bottom: 5px;
+             border-bottom: 1px solid #3d3d3d;
+             padding-bottom: 12px;
+         }
+         .app-title {
+             font-size: 22px;
+             font-weight: 700;
+             margin: 20px 0 30px 0;
+             color: #ccc;
+         }
+         .btn-stack {
+             display: flex;
+             flex-direction: column;
+             gap: 12px;
+         }
+         
+         /* Инструментальный стиль кнопок */
+         .custom-btn {
+             min-height: 36px;
+             padding: 10px 14px;
+             font-size: 13px;
+             font-weight: 600;
+             line-height: 1;
+             background-color: transparent;
+             color: #FF671F;
+             border: 2px solid #FF671F;
+             border-radius: 6px;
+             display: inline-flex;
+             align-items: center;
+             justify-content: center;
+             gap: 6px;
+             cursor: pointer;
+             text-decoration: none;
+             box-sizing: border-box;
+             transition:
+                 background-color 0.15s ease,
+                 box-shadow 0.15s ease,
+                 transform 0.1s ease;
+         }
+         .custom-btn:hover {
+             background-color: rgba(255, 103, 31, 0.08);
+             box-shadow: 0 0 0 2px rgba(255, 103, 31, 0.35);
+         }
+         .custom-btn:active {
+             transform: scale(0.96);
+         }
+ 
+         /* 🗑 КНОПКА КОРЗИНЫ (В КРАСНОМ ИНСТРУМЕНТАЛЬНОМ СТИЛЕ) */
+         .btn-trash {
+             color: #f44336;
+             border-color: #f44336;
+         }
+         .btn-trash:hover {
+             background-color: rgba(244, 67, 54, 0.08);
+             box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.35);
+         }
+ 
+         /* Заблокированные кнопки */
+         .btn-disabled {
+             min-height: 36px;
+             padding: 10px 14px;
+             background-color: #2a2a2a;
+             color: #555;
+             border: 2px solid #444;
+             border-radius: 6px;
+             font-size: 13px;
+             font-weight: 600;
+             cursor: not-allowed;
+             display: inline-flex;
+             align-items: center;
+             justify-content: center;
+         }
+        </style>
+
+<!-- ПОДКЛЮЧЕНИЕ PWA (Строго внутри head) -->
+<link rel="manifest" href="/manifest.json?v=2">
+<!-- Окрашивает системную верхнюю полоску телефона в темный цвет вашего приложения -->
+<meta name="theme-color" content="#121212">
+
+<script>
+    if ('serviceWorker' in navigator) {
+      // Автоматически подставит правильный путь к функции get_sw из main.py
+      navigator.serviceWorker.register("{{ url_for('get_sw') }}")
+        .then(reg => console.log('Service Worker зарегистрирован', reg))
+        .catch(err => console.error('Ошибка Service Worker', err));
+    }
+  </script>
+  
+</head>
+
+<body>
+<div class="menu-card">
+    <div class="company-title">{{ company_name }}</div>
+    <div class="app-title">📦 Склад материалов</div>
+    
+    <div class="btn-stack">
+        <!-- 📄 Кнопка листовых материалов ЛДСП/ЛМДФ -->
+        <a href="/sheets" class="custom-btn">📄 Листовой материал</a>
+        
+        <!-- 📏 Кнопка погонажа -->
+        <a href="/molding" class="custom-btn">📏 Погонаж склада</a>
+        
+        <!-- 🧠 КНОПКА КОРЗИНЫ: Ведет на историю удаленных позиций -->
+        <a href="/trash" class="custom-btn btn-trash">🗑 Корзина удалений</a>
+        
+        <!-- Временная заглушка для кромочных материалов -->
+        <div class="btn-disabled">🧵 Кромочные материалы (Скоро)</div>
+    </div>
+</div>
+</body>
+</html>

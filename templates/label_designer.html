@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Настройка бирки — {{ page_title }}</title>
+    <style>
+        * { box-sizing: border-box; }
+        html, body { margin: 0; height: 100%; background: #1a1a1a; color: #eee; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        .layout { display: flex; height: 100vh; overflow: hidden; }
+        .sidebar {
+            width: 340px; min-width: 320px; max-width: 360px;
+            background: #262626; border-right: 1px solid #3d3d3d;
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        .sidebar-scroll { flex: 1; overflow-y: auto; padding: 16px; }
+        .sidebar-footer {
+            padding: 12px 16px; border-top: 1px solid #3d3d3d; background: #212121;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .preview-pane {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            background: #141414; padding: 24px; overflow: auto;
+        }
+        h2.block-title {
+            font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+            color: #FF671F; margin: 0 0 12px 0;
+        }
+        .block { margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #333; }
+        label.field-label { display: block; font-size: 11px; color: #888; margin-bottom: 4px; font-weight: 600; }
+        input, select, textarea {
+            width: 100%; background: transparent; color: #FF671F; border: 2px solid #FF671F;
+            border-radius: 6px; padding: 8px 10px; font-size: 13px; font-weight: 600;
+        }
+        input:focus, select:focus, textarea:focus { outline: none; box-shadow: 0 0 0 2px rgba(255,103,31,0.35); }
+        input:disabled, select:disabled { opacity: 0.6; cursor: not-allowed; }
+        textarea { min-height: 88px; resize: vertical; line-height: 1.35; }
+        .media-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        button {
+            min-height: 36px; padding: 8px 12px; font-size: 13px; font-weight: 600;
+            background: transparent; color: #FF671F; border: 2px solid #FF671F;
+            border-radius: 6px; cursor: pointer; width: 100%;
+        }
+        button:hover { background: rgba(255,103,31,0.08); }
+        button.primary { background: #FF671F; color: #fff; border-color: #FF671F; }
+        button.ghost { border-color: #666; color: #aaa; }
+        .var-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+        .var-chips button { width: auto; min-height: 28px; padding: 4px 8px; font-size: 11px; }
+        .align-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-top: 8px; }
+        .align-grid button.active { background: rgba(255,103,31,0.25); }
+        #element-props { display: none; }
+        #element-props.visible { display: block; }
+        .label-stage-wrap { position: relative; }
+        .label-canvas {
+            position: relative; background: #fff; color: #111;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5); border-radius: 2px;
+            overflow: hidden; user-select: none;
+        }
+        .label-element {
+            position: absolute; border: 1px dashed transparent; cursor: move;
+            overflow: hidden; display: flex; padding: 2px;
+        }
+        .label-element.selected { border-color: #FF671F; }
+        .label-element.text-el {
+            font-size: 11px; font-weight: 700; white-space: pre-wrap; word-break: break-word;
+        }
+        .label-element.qr-el {
+            align-items: center; justify-content: center; background: #f5f5f5;
+        }
+        .label-element.qr-el img { width: 100%; height: 100%; object-fit: contain; }
+        .handle {
+            position: absolute; width: 10px; height: 10px; background: #FF671F;
+            border: 1px solid #fff; border-radius: 2px; z-index: 5;
+        }
+        .handle.nw { top: -5px; left: -5px; cursor: nwse-resize; }
+        .handle.ne { top: -5px; right: -5px; cursor: nesw-resize; }
+        .handle.sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
+        .handle.se { bottom: -5px; right: -5px; cursor: nwse-resize; }
+        .preview-hint { text-align: center; color: #666; font-size: 12px; margin-top: 12px; }
+        .top-link { font-size: 12px; color: #888; margin-bottom: 12px; }
+        .top-link a { color: #FF671F; text-decoration: none; }
+    </style>
+</head>
+<body>
+<div class="layout">
+    <aside class="sidebar">
+        <div class="sidebar-scroll">
+            <div class="top-link"><a href="{{ back_url }}">← К таблице материалов</a></div>
+
+            <div class="block">
+                <h2 class="block-title">Настройка принтера</h2>
+                <label class="field-label">Принтер</label>
+                <select id="printer-select" disabled></select>
+                <label class="field-label" style="margin-top:10px;">Порт / IP (LAN)</label>
+                <input type="text" id="printer-host" placeholder="192.168.1.100">
+                <label class="field-label" style="margin-top:10px;">Параметры носителя (мм)</label>
+                <div class="media-row">
+                    <div><label class="field-label">Ширина</label><input type="number" id="media-w" min="10" step="0.1"></div>
+                    <div><label class="field-label">Высота</label><input type="number" id="media-h" min="10" step="0.1"></div>
+                    <div><label class="field-label">Зазор</label><input type="number" id="media-gap" min="0" step="0.1"></div>
+                </div>
+            </div>
+
+            <div class="block">
+                <h2 class="block-title">Конструктор макета</h2>
+                <button type="button" id="btn-add-text" style="margin-bottom:8px;">+ Добавить текстовое поле</button>
+                <button type="button" id="btn-add-qr">+ Добавить QR-код</button>
+            </div>
+
+            <div id="element-props" class="block">
+                <h2 class="block-title" id="props-title">Шаблон размеров</h2>
+                <div class="var-chips" id="var-chips"></div>
+                <label class="field-label">Шаблон (Shift+Enter — новая строка)</label>
+                <textarea id="template-input"></textarea>
+                <div id="text-align-block" style="display:none;">
+                    <label class="field-label">Выравнивание по горизонтали</label>
+                    <div class="align-grid" id="align-h">
+                        <button type="button" data-v="left">Слева</button>
+                        <button type="button" data-v="center">По центру</button>
+                        <button type="button" data-v="right">Справа</button>
+                    </div>
+                    <label class="field-label" style="margin-top:8px;">Выравнивание по вертикали</label>
+                    <div class="align-grid" id="align-v">
+                        <button type="button" data-v="top">Сверху</button>
+                        <button type="button" data-v="center">По центру</button>
+                        <button type="button" data-v="bottom">Снизу</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            <button type="button" class="primary" id="btn-save">Сохранить шаблон</button>
+            <button type="button" class="ghost" id="btn-close">Закрыть</button>
+        </div>
+    </aside>
+    <main class="preview-pane">
+        <div>
+            <div class="label-stage-wrap">
+                <div id="label-canvas" class="label-canvas"></div>
+            </div>
+            <p class="preview-hint">Предпросмотр масштабируется автоматически. Перетаскивайте элементы и меняйте размер за углы.</p>
+        </div>
+    </main>
+</div>
+
+<script>
+const CONTEXT = {{ context | tojson }};
+const BACK_URL = {{ back_url | tojson }};
+const VAR_BUTTONS = {{ var_buttons | tojson }};
+const INITIAL_TEMPLATE = {{ template | tojson }};
+
+let state = structuredClone(INITIAL_TEMPLATE);
+let selectedId = null;
+let templateDraft = '';
+let templateDraftBackup = '';
+let pxPerMm = 4;
+let drag = null;
+
+function uid() { return 'el_' + Math.random().toString(36).slice(2, 9); }
+
+function sampleVars() {
+    const v = {};
+    VAR_BUTTONS.forEach(([_, tag]) => {
+        const key = tag.replace(/[{}]/g, '');
+        if (key === 'material') v.material = CONTEXT === 'sheets' ? 'ЛДСП 16мм Дуб Галифакс' : 'Профиль цокольный\n Арт:AGT 601';
+        else if (key === 'length') v.length = CONTEXT === 'sheets' ? '1200' : '3000';
+        else if (key === 'width') v.width = '800';
+        else if (key === 'sku') v.sku = 'AGT 601';
+        else if (key === 'reserve') v.reserve = '50';
+        else if (key === 'comment') v.comment = 'остаток';
+        else if (key === 'quantity') v.quantity = '2';
+        else if (key === 'area') v.area = '960000';
+        else if (key === 'date') v.date = '22.10.2026';
+        else if (key === 'time') v.time = '14:30';
+    });
+    v.qr_url = 'http://192.168.1.168:8000/sample';
+    return v;
+}
+
+function renderTemplateString(tmpl, vars) {
+    return tmpl.replace(/\{([^}]+)\}/g, (m, key) => {
+        const k = key.trim().toLowerCase();
+        const map = {
+            material: vars.material, length: vars.length, width: vars.width,
+            reserve: vars.reserve, comment: vars.comment, quantity: vars.quantity,
+            area: vars.area, date: vars.date, time: vars.time, sku: vars.sku,
+            qr_url: vars.qr_url, url: vars.qr_url
+        };
+        if (map[k] !== undefined) return map[k];
+        if (key === 'Material' && vars.material) return vars.material;
+        return m;
+    });
+}
+
+function syncFormFromState() {
+    document.getElementById('printer-select').innerHTML = `<option>${state.printer.name}</option>`;
+    document.getElementById('printer-host').value = state.printer.host || '';
+    document.getElementById('media-w').value = state.media.width_mm;
+    document.getElementById('media-h').value = state.media.height_mm;
+    document.getElementById('media-gap').value = state.media.gap_mm;
+}
+
+function readMediaFromForm() {
+    let hostRaw = document.getElementById('printer-host').value.trim();
+    if (hostRaw.includes(':')) {
+        const parts = hostRaw.split(':');
+        state.printer.host = parts[0];
+        state.printer.port = parseInt(parts[1], 10) || state.printer.port || 9100;
+    } else {
+        state.printer.host = hostRaw;
+    }
+    state.media.width_mm = parseFloat(document.getElementById('media-w').value) || 58;
+    state.media.height_mm = parseFloat(document.getElementById('media-h').value) || 40;
+    state.media.gap_mm = parseFloat(document.getElementById('media-gap').value) || 3;
+    layoutCanvas();
+    renderElements();
+}
+
+function layoutCanvas() {
+    const canvas = document.getElementById('label-canvas');
+    const maxW = Math.min(window.innerWidth - 420, 720);
+    pxPerMm = Math.min(maxW / state.media.width_mm, 12);
+    canvas.style.width = (state.media.width_mm * pxPerMm) + 'px';
+    canvas.style.height = (state.media.height_mm * pxPerMm) + 'px';
+}
+
+function flexAlign(h, v) {
+    const jh = h === 'center' ? 'center' : (h === 'right' ? 'flex-end' : 'flex-start');
+    const jv = v === 'center' ? 'center' : (v === 'bottom' ? 'flex-end' : 'flex-start');
+    return `justify-content:${jh};align-items:${jv};`;
+}
+
+function renderElements() {
+    const canvas = document.getElementById('label-canvas');
+    canvas.innerHTML = '';
+    const vars = sampleVars();
+    state.elements.forEach(el => {
+        const node = document.createElement('div');
+        node.className = 'label-element ' + (el.type === 'qr' ? 'qr-el' : 'text-el');
+        node.dataset.id = el.id;
+        if (el.id === selectedId) node.classList.add('selected');
+
+        if (el.type === 'text') {
+            const text = renderTemplateString(el.template || '', vars);
+            node.style.cssText += flexAlign(el.align_h || 'left', el.align_v || 'top');
+            node.innerText = text || '(текст)';
+        } else {
+            const data = renderTemplateString(el.template || '{qr_url}', vars);
+            node.innerHTML = `<img alt="QR" src="/api/qr-image?data=${encodeURIComponent(data)}">`;
+        }
+
+        const x = (el.x_mm || 0) * pxPerMm;
+        const y = (el.y_mm || 0) * pxPerMm;
+        if (el.type === 'qr') {
+            const s = (el.size_mm || 14) * pxPerMm;
+            node.style.left = x + 'px'; node.style.top = y + 'px';
+            node.style.width = s + 'px'; node.style.height = s + 'px';
+        } else {
+            node.style.left = x + 'px'; node.style.top = y + 'px';
+            node.style.width = (el.w_mm || 20) * pxPerMm + 'px';
+            node.style.height = (el.h_mm || 10) * pxPerMm + 'px';
+        }
+
+        if (el.id === selectedId) {
+            ['nw','ne','sw','se'].forEach(c => {
+                const h = document.createElement('div');
+                h.className = 'handle ' + c;
+                h.dataset.corner = c;
+                node.appendChild(h);
+            });
+        }
+
+        node.addEventListener('mousedown', onElementMouseDown);
+        canvas.appendChild(node);
+    });
+}
+
+function selectElement(id) {
+    selectedId = id;
+    const el = state.elements.find(e => e.id === id);
+    const props = document.getElementById('element-props');
+    if (!el) {
+        props.classList.remove('visible');
+        renderElements();
+        return;
+    }
+    props.classList.add('visible');
+    document.getElementById('props-title').innerText = el.type === 'qr' ? 'Шаблон QR-кода' : 'Шаблон размеров';
+    document.getElementById('text-align-block').style.display = el.type === 'text' ? 'block' : 'none';
+    templateDraft = el.template || '';
+    templateDraftBackup = templateDraft;
+    document.getElementById('template-input').value = templateDraft;
+    updateAlignButtons(el);
+    renderElements();
+}
+
+function updateAlignButtons(el) {
+    document.querySelectorAll('#align-h button').forEach(b => {
+        b.classList.toggle('active', b.dataset.v === (el.align_h || 'left'));
+    });
+    document.querySelectorAll('#align-v button').forEach(b => {
+        b.classList.toggle('active', b.dataset.v === (el.align_v || 'top'));
+    });
+}
+
+function onElementMouseDown(e) {
+    const corner = e.target.dataset && e.target.dataset.corner;
+    const node = e.currentTarget;
+    const id = node.dataset.id;
+    selectElement(id);
+    const el = state.elements.find(x => x.id === id);
+    if (!el) return;
+    e.preventDefault();
+    const startX = e.clientX, startY = e.clientY;
+    const orig = { x_mm: el.x_mm, y_mm: el.y_mm, w_mm: el.w_mm, h_mm: el.h_mm, size_mm: el.size_mm };
+    drag = { id, corner, startX, startY, orig, el };
+    window.addEventListener('mousemove', onDragMove);
+    window.addEventListener('mouseup', onDragEnd);
+}
+
+function onDragMove(e) {
+    if (!drag) return;
+    const dx = (e.clientX - drag.startX) / pxPerMm;
+    const dy = (e.clientY - drag.startY) / pxPerMm;
+    const el = drag.el;
+    const W = state.media.width_mm, H = state.media.height_mm;
+
+    if (drag.corner) {
+        const delta = (drag.corner === 'nw' || drag.corner === 'se') ? Math.max(dx, dy) : Math.max(-dx, -dy);
+        if (el.type === 'qr') {
+            let ns = Math.max(4, (drag.orig.size_mm || 14) + delta);
+            ns = Math.min(ns, Math.min(W - el.x_mm, H - el.y_mm));
+            el.size_mm = ns;
+        } else {
+            const ratio = (drag.orig.h_mm || 10) / (drag.orig.w_mm || 20);
+            let nw = Math.max(5, (drag.orig.w_mm || 20) + delta);
+            let nh = Math.max(4, nw * ratio);
+            el.w_mm = Math.min(nw, W - el.x_mm);
+            el.h_mm = Math.min(nh, H - el.y_mm);
+        }
+    } else {
+        el.x_mm = Math.max(0, Math.min(W - 2, drag.orig.x_mm + dx));
+        el.y_mm = Math.max(0, Math.min(H - 2, drag.orig.y_mm + dy));
+    }
+    renderElements();
+    const node = document.querySelector(`.label-element[data-id="${el.id}"]`);
+    if (node) node.classList.add('selected');
+}
+
+function onDragEnd() {
+    drag = null;
+    window.removeEventListener('mousemove', onDragMove);
+    window.removeEventListener('mouseup', onDragEnd);
+}
+
+function buildVarChips() {
+    const box = document.getElementById('var-chips');
+    box.innerHTML = '';
+    VAR_BUTTONS.forEach(([label, tag]) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = label;
+        b.addEventListener('click', () => insertTag(tag));
+        box.appendChild(b);
+    });
+}
+
+function insertTag(tag) {
+    const ta = document.getElementById('template-input');
+    const start = ta.selectionStart, end = ta.selectionEnd;
+    const val = ta.value;
+    ta.value = val.slice(0, start) + tag + val.slice(end);
+    ta.focus();
+    ta.selectionStart = ta.selectionEnd = start + tag.length;
+    commitTemplate(false);
+}
+
+function commitTemplate(fromEnter) {
+    if (!selectedId) return;
+    const el = state.elements.find(e => e.id === selectedId);
+    if (!el) return;
+    el.template = document.getElementById('template-input').value;
+    templateDraft = el.template;
+    if (fromEnter) templateDraftBackup = templateDraft;
+    renderElements();
+}
+
+function cancelTemplateEdit() {
+    document.getElementById('template-input').value = templateDraftBackup;
+    commitTemplate(false);
+}
+
+document.getElementById('btn-add-text').addEventListener('click', () => {
+    const id = uid();
+    state.elements.push({
+        id, type: 'text', x_mm: 2, y_mm: 2, w_mm: 30, h_mm: 12,
+        template: '{length}×{width} мм', align_h: 'left', align_v: 'top', font_scale: 2
+    });
+    selectElement(id);
+});
+
+document.getElementById('btn-add-qr').addEventListener('click', () => {
+    const id = uid();
+    state.elements.push({
+        id, type: 'qr', x_mm: 40, y_mm: 10, size_mm: 14, template: '{qr_url}'
+    });
+    selectElement(id);
+});
+
+document.getElementById('template-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        commitTemplate(true);
+        e.target.blur();
+    } else if (e.key === 'Escape') {
+        e.preventDefault();
+        cancelTemplateEdit();
+        e.target.blur();
+    }
+});
+document.getElementById('template-input').addEventListener('input', () => commitTemplate(false));
+
+document.querySelectorAll('#align-h button').forEach(b => {
+    b.addEventListener('click', () => {
+        const el = state.elements.find(e => e.id === selectedId);
+        if (!el || el.type !== 'text') return;
+        el.align_h = b.dataset.v;
+        updateAlignButtons(el);
+        renderElements();
+    });
+});
+document.querySelectorAll('#align-v button').forEach(b => {
+    b.addEventListener('click', () => {
+        const el = state.elements.find(e => e.id === selectedId);
+        if (!el || el.type !== 'text') return;
+        el.align_v = b.dataset.v;
+        updateAlignButtons(el);
+        renderElements();
+    });
+});
+
+['printer-host','media-w','media-h','media-gap'].forEach(id => {
+    document.getElementById(id).addEventListener('change', readMediaFromForm);
+    document.getElementById(id).addEventListener('input', readMediaFromForm);
+});
+
+document.getElementById('label-canvas').addEventListener('mousedown', e => {
+    if (e.target.id === 'label-canvas') {
+        selectedId = null;
+        document.getElementById('element-props').classList.remove('visible');
+        renderElements();
+    }
+});
+
+document.getElementById('btn-save').addEventListener('click', async () => {
+    readMediaFromForm();
+    const port = state.printer.port || 9100;
+    const host = state.printer.host || '';
+    const payload = { context: CONTEXT, template: state };
+    try {
+        const res = await fetch('/api/label-template', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Ошибка сохранения');
+        alert(data.message || 'Шаблон сохранён');
+    } catch (err) {
+        alert(err.message || 'Не удалось сохранить');
+    }
+});
+
+document.getElementById('btn-close').addEventListener('click', () => {
+    window.location.href = BACK_URL;
+});
+
+window.addEventListener('resize', () => { layoutCanvas(); renderElements(); });
+
+buildVarChips();
+syncFormFromState();
+layoutCanvas();
+renderElements();
+</script>
+</body>
+</html>

@@ -1,0 +1,1528 @@
+<!-- templates/table.html -->
+ <!-- Таблица материалов -->
+  <!-- Ссылка которую дал cursor -->
+<!-- <script src="https://unpkg.com"></script> -->
+ <!-- Эту ссылку дал гугл с ней грузится страница лучше -->
+<script defer src="https://jsdelivr.net"></script>
+
+<style>
+    /* КАСТОМНЫЕ ИДЕАЛЬНО КВАДРАТНЫЕ ЧЕКБОКСЫ */
+    .custom-checkbox {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 16px !important;
+        height: 16px !important;
+        min-width: 16px !important;
+        min-height: 16px !important;
+        max-width: 16px !important;
+        max-height: 16px !important;
+        background-color: #1a1a1a;
+        border: 2px solid #FF671F;
+        border-radius: 4px;
+        cursor: pointer;
+        display: inline-block;
+        position: relative;
+        box-sizing: border-box;
+        outline: none;
+        transition: background 0.1s;
+        margin: 0;
+        padding: 0;
+    }
+    .custom-checkbox:checked {
+        background-color: #FF671F;
+    }
+    .custom-checkbox:checked::after {
+        content: '✓';
+        position: absolute;
+        color: #fff;
+        font-size: 11px;
+        font-weight: bold;
+        top: -3px;
+        left: 2px;
+    }
+    .custom-checkbox:focus {
+        box-shadow: 0 0 0 2px rgba(255, 103, 31, 0.35);
+    }
+
+    /* ФИКСИРОВАННАЯ НИЖНЯЯ ПАНЕЛЬ ИНСТРУМЕНТОВ */
+    .bottom-action-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background-color: #262626;
+        border-top: 2px solid #FF671F;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 30px;
+        z-index: 2000;
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+        transform: translateY(100%);
+        transition: transform 0.2s ease-in-out;
+    }
+    .bottom-action-bar.active {
+        transform: translateY(0);
+    }
+    
+    .table-container-padding {
+        padding-bottom: 80px;
+    }
+
+    /* СТРЕЛКИ СОРТИРОВКИ */
+    .sort-arrow {
+        font-size: 10px;
+        margin-left: 3px;
+        color: #FF671F;
+    }
+
+    /* ============================================================
+       📱 ТРАНСФОРМАЦИЯ ТАБЛИЦЫ В КАРТОЧКИ НА СМАРТФОНОВ (До 600px)
+       ============================================================ */
+       @media screen and (max-width: 600px) {
+        /* Отключаем табличные свойства */
+        #materials-table, 
+        #materials-table thead, 
+        #materials-table tbody, 
+        #materials-table th, 
+        #materials-table td, 
+        #materials-table tr { 
+            display: block; 
+        }
+        
+        /* Прячем шапку таблицы */
+        #materials-table thead tr { 
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+        }
+        
+        /* Превращаем каждую строку в полноценную карточку материала */
+        #materials-table tr[id^="row-"] {
+            background-color: #232323;
+            border: 1px solid #3d3d3d;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            padding: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        /* Выравнивание ячеек внутри карточки */
+        #materials-table td {
+            border: none;
+            padding: 4px 0 !important;
+            font-size: 14px;
+            text-align: left !important;
+        }
+        
+        /* 🧠 ИСПРАВЛЕНО: Горизонтальный контейнер в верхнем правом углу карточки */
+        #materials-table td:first-child {
+            display: inline-flex !important; /* Включаем флекс-ряд */
+            align-items: center !important;  /* Выравниваем карандаш и чекбокс строго по центру друг друга */
+            gap: 12px !important;            /* Зазор между карандашом и галочкой */
+            position: absolute; 
+            top: 12px; 
+            right: 12px; 
+            width: auto !important;          /* Убираем жесткую ширину, ряд растянется сам */
+            height: 24px !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            z-index: 10;
+        }
+        
+        /* Название материала (увеличили отступ справа, так как кнопок в углу теперь две) */
+        #materials-table td:nth-child(2) {
+            padding-right: 65px !important; border-bottom: 1px solid #333; padding-bottom: 8px !important; margin-bottom: 8px;
+        }
+        #materials-table .material-text {
+            font-size: 15px !important;
+            color: #FF671F !important;
+        }
+        
+        /* 📏 СТРОКА 1: ГАБАРИТЫ (СЛЕВА) И КОЛИЧЕСТВО (СПРАВА НА ОДНОЙ ВЫСОТЕ) */
+        .material-len::before { content: "Габарит: "; color: #888; font-weight: normal; font-size: 12px; }
+        .material-len::after { content: "х"; color: #fff; }
+        .material-width::after { content: " мм"; color: #fff; }
+        .material-qty::before { content: "Кол-во: "; color: #888; font-weight: normal; font-size: 12px; }
+        
+        .material-len {
+            display: inline-block !important;
+            width: auto !important;
+            color: #fff !important;
+            margin-right: -4px; 
+        }
+        .material-width {
+            display: inline-block !important;
+            width: auto !important;
+            color: #fff !important;
+            padding-left: 0 !important; 
+        }
+        
+        .material-qty {
+            display: block !important;
+            float: right; 
+            text-align: right !important;
+            color: #fff !important;
+            width: auto !important;
+        }
+        
+        /* 📋 СТРОКА 2: ПЛОЩАДЬ (ВЫВОДИТСЯ НИЖЕ С КЛИНОМ ДЛЯ СБРОСА ФЛОАТА) */
+        .material-area::before { content: "Площадь: "; color: #888; font-weight: normal; font-size: 12px; }
+        .material-area::after { content: " кв.м"; color: #fff; }
+        
+        .material-area {
+            display: block !important;
+            clear: both; 
+            width: 100% !important;
+            color: #fff !important;
+            margin-top: 6px; 
+            padding-top: 2px !important;
+        }
+
+        /* 🧠 ИСПРАВЛЕНО: Полностью скрываем старый нижний блок с шумящими кнопками действий на телефонах */
+        #materials-table td:last-child {
+            display: none !important;
+        }
+        
+        
+        /* 🧠 ИСПРАВЛЕНО: Стили компактного карандаша (теперь он всегда слева от галочки) */
+        .mobile-edit-trigger {
+            display: inline-flex !important;
+            order: -1;                       /* ВАЖНО: Этот параметр принудительно ставит кнопку СЛЕВА от чекбокса в HTML-ряде */
+            margin-top: 0 !important;        /* Сбросили старый вертикальный маржин */
+            width: 24px !important;
+            height: 24px !important;
+            min-height: 24px !important;
+            background: transparent !important;
+            border: none !important; 
+            padding: 0 !important;
+            font-size: 16px !important;
+            cursor: pointer;
+            justify-content: center;
+            align-items: center;
+            box-shadow: none !important;
+            user-select: none;
+        }
+        .mobile-edit-trigger:hover {
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+
+        /* 📱 ИСПРАВЛЕННОЕ МОДАЛЬНОЕ ОКНО: ЖЕСТКО ПО ЦЕНТРУ ЭКРАНА ТЕЛЕФОНА */
+        #materials-table tr[id^="edit-form-row-"] {
+            display: none; 
+            position: fixed !important;
+            top: 0 !important;
+            left: 50% !important; 
+            transform: translateX(-50%) !important; 
+            width: 100vw !important;
+            height: 100vh !important;
+            background-color: rgba(26, 26, 26, 0.97) !important; 
+            z-index: 9999 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box;
+        }
+        
+        #materials-table tr[id^="edit-form-row-"] td {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            padding: 16px !important;
+            box-sizing: border-box;
+        }
+        
+        #materials-table tr[id^="edit-form-row-"] td > div {
+            background-color: #262626 !important;
+            border: 2px solid #FF671F !important;
+            border-radius: 8px !important;
+            
+            padding: 20px !important;
+            width: 100% !important;
+            max-width: 340px !important; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.9) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 12px !important;
+            box-sizing: border-box !important;
+        }
+
+        #materials-table tr[id^="edit-form-row-"] label {
+            font-size: 11px !important;
+            color: #888 !important;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+            text-align: left !important;
+        }
+
+        #materials-table tr[id^="edit-form-row-"] input {
+            width: 100% !important;
+            height: 42px !important;
+            background-color: transparent !important;
+            color: #FF671F !important;
+            border: 2px solid #FF671F !important;
+            border-radius: 6px !important;
+            padding: 0 12px !important;
+            font-size: 16px !important; 
+            box-sizing: border-box !important;
+        }
+
+        #materials-table tr[id^="edit-form-row-"] button {
+            margin: 0 !important;
+            min-height: 42px !important;
+            height: 42px !important;
+            font-size: 14px !important;
+            width: 100% !important;
+        }
+
+        /* ⚙️ АДАПТИВНАЯ НИЖНЯЯ ПАНЕЛЬ ДЛЯ СМАРТФОНОВ */
+        .bottom-action-bar {
+            flex-direction: column !important;
+            height: auto !important;
+            padding: 10px 12px 14px 12px !important;
+            gap: 8px !important;
+            background-color: #212121 !important;
+        }
+
+        .bottom-action-bar > div:first-child {
+            width: 100% !important;
+            text-align: center !important;
+            font-size: 13px !important;
+            padding-bottom: 2px;
+            border-bottom: 1px solid #333;
+        }
+
+        .bottom-action-bar > div:last-child {
+            width: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 8px !important;
+        }
+
+        #bar-free-actions {
+            width: 100% !important;
+            gap: 2% !important; 
+        }
+        #bar-free-actions input {
+            width: 73% !important; 
+            height: 38px !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
+            flex: none !important; 
+        }
+        #bar-free-actions button {
+            width: 25% !important; 
+            height: 38px !important;
+            padding: 0 !important;
+            white-space: nowrap;
+            font-size: 11px !important; 
+            box-sizing: border-box !important;
+            flex: none !important;
+        }
+
+        #bar-reserved-actions {
+            width: 100% !important;
+        }
+        #bar-reserved-actions button {
+            width: 100% !important;
+            height: 38px !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
+        }
+
+        .bottom-action-bar button:not([onclick*="mass-reserve"]):not([onclick*="mass-unreserve"]) {
+            height: 36px !important;
+            font-size: 12px !important;
+            flex: 1 !important; 
+            padding: 0 !important;
+            white-space: nowrap;
+        }
+
+        .bottom-action-bar div {
+            display: flex !important;
+            align-items: center !important;
+        }
+        #mobile-select-all-container {
+            display: flex !important;
+        }
+        #mobile-select-all-container {
+            border-radius: 0 0 0 0;
+        }
+        .table-section {
+            border-radius: 0 0 8px 8px !important;
+        }
+    }
+
+    /* 🧠 ДЛЯ МОНИТОРОВ: Прячем мобильный карандаш на больших экранах */
+    @media screen and (min-width: 601px) {
+        .mobile-edit-trigger {
+            display: none !important;
+        }
+    }
+
+
+
+
+    /* Принудительно показываем крестик очистки поиска на iOS и Chrome */
+    input[type="search"]::-webkit-search-cancel-button {
+        -webkit-appearance: -apple-pay-button-video !important; /* Включает стандартный крестик на iOS */
+        appearance: auto !important;
+        display: block !important;
+        cursor: pointer;
+    }
+ 
+</style>
+
+
+<div class="table-container-padding">
+    <div class="cutting-tabs">
+        <button id="tab-free" class="active" onclick="switchTab('free')">📦 Свободные материалы</button>
+        <button id="tab-reserved" onclick="switchTab('reserved')">🔒 В резерве</button>
+    </div>
+
+    <!-- ГЛАВНАЯ ФОРМА ДЛЯ ОПЕРАЦИЙ -->
+    <form id="mass-action-form" method="POST" action="">
+        
+        <div class="table-section">
+            <div class="table-header" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px;">
+                <span id="table-title-text">Свободные остатки материалов</span>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <a href="/label-designer/sheets" style="height: 32px; min-height: 32px; font-size: 12px; font-weight: 600; border: 2px solid #FF671F; color: #FF671F; padding: 0 10px; border-radius: 6px; display: inline-flex; align-items: center; text-decoration: none; white-space: nowrap;">⚙ Настройка бирки</a>
+                    <input type="search" id="table-search" placeholder="Поиск по складу..." onkeyup="searchTable()" onsearch="searchTable()" style="width: 180px; height: 32px;">
+
+                </div>
+            </div>
+
+            <!-- Контейнер для камеры сканера -->
+            <div id="scanner-container" style="display: none; background-color: #1e1e1e; border-bottom: 1px solid #3d3d3d; padding: 15px; text-align: center;">
+                <div id="interactive-reader" style="max-width: 400px; margin: 0 auto; background: #000; border-radius: 6px;"></div>
+                <button type="button" onclick="toggleScanner()" style="margin-top: 10px; min-height: 28px; font-size: 12px; border-color: #777; color: #777; width: auto;">Закрыть камеру</button>
+            </div>
+            <!-- МОБИЛЬНАЯ КНОПКА МАССОВОГО ВЫДЕЛЕНИЯ (ВИДИМА ТОЛЬКО НА СМАРТФОНАХ) -->
+            <div id="mobile-select-all-container" style="display: none; padding: 10px 15px; background-color: #212121; border-bottom: 1px solid #3d3d3d; justify-content: space-between; align-items: center;">
+                <span style="font-size: 13px; color: #aaa; font-weight: 600;">Массовый выбор:</span>
+                <button type="button" id="mobile-select-all-btn" onclick="triggerMobileSelectAll()" style="width: auto; min-height: 28px; height: 28px; padding: 0 12px; font-size: 12px; border-color: #FF671F; color: #FF671F;">☑ Выбрать все</button>
+            </div>
+            
+
+            <table id="materials-table">
+                <!-- ============================================================
+                     ⚙️ МОНОЛИТНАЯ ДВУХЭТАЖНАЯ ШАПКА ДЛЯ СКЛАДА ЛИСТОВЫХ МАТЕРИАЛОВ
+                     ============================================================ -->
+                     <thead>
+                        <tr>
+                            <th style="width: 5%; text-align: center; vertical-align: middle;">
+                                <input type="checkbox" id="check-all" class="custom-checkbox" onclick="toggleAllCheckboxes(this)">
+                            </th>
+                            
+                            <!-- Материал / Декор (Индекс 1) -->
+                            <!-- Добавили event и класс sort-indicator ярко-оранжевого цвета -->
+                            <th onclick="sortTable(1, this, event)" style="cursor: pointer; text-align: left; color: #FF671F; vertical-align: bottom; padding-bottom: 8px; user-select: none;">
+                                Материал /<br>
+                                <span style="white-space: nowrap;">Декор <span class="sort-indicator">▲▼</span></span>
+                            </th>
+                            
+                            <!-- Длина L (Индекс 2) -->
+                            <th onclick="sortTable(2, this, event)" style="cursor: pointer; text-align: center; width: 12%; color: #FF671F; vertical-align: bottom; padding-bottom: 8px; user-select: none;">
+                                Длина<br>
+                                <span style="white-space: nowrap;">L (мм) <span class="sort-indicator">▲▼</span></span>
+                            </th>
+                            
+                            <!-- Ширина W (Индекс 3) -->
+                            <th onclick="sortTable(3, this, event)" style="cursor: pointer; text-align: center; width: 12%; color: #FF671F; vertical-align: bottom; padding-bottom: 8px; user-select: none;">
+                                Ширина<br>
+                                <span style="white-space: nowrap;">W (мм) <span class="sort-indicator">▲▼</span></span>
+                            </th>
+                            
+                            <!-- Количество (Индекс 4) -->
+                            <th onclick="sortTable(4, this, event)" style="cursor: pointer; text-align: center; width: 10%; color: #FF671F; vertical-align: bottom; padding-bottom: 8px; user-select: none;">
+                                Кол-во<br>
+                                <span style="white-space: nowrap;">(шт) <span class="sort-indicator">▲▼</span></span>
+                            </th>
+                            
+                            <!-- Площадь (Индекс 5) -->
+                            <th onclick="sortTable(5, this, event)" style="cursor: pointer; text-align: center; width: 12%; color: #FF671F; vertical-align: bottom; padding-bottom: 8px; user-select: none;">
+                                Площадь<br>
+                                <span style="white-space: nowrap;">(кв.м) <span class="sort-indicator">▲▼</span></span>
+                            </th>
+                            
+                            <!-- Действия (Не сортируется) -->
+                            <th style="text-align: right; padding-right: 25px; width: 14%; color: #FF671F; vertical-align: middle;">Действия</th>
+                        </tr>
+                    </thead>
+    
+
+                <tbody>
+                    {% if materials %}
+                        {% for item in materials %}
+                        {% set is_reserved = item.get('status') == 'В резерве' %}
+<!-- ИСПРАВЛЕННЫЙ ВАРИАНТ С КОМПАКТНЫМ КАРАНДАШОМ ДЛЯ ЛИСТОВЫХ МАТЕРИАЛОВ -->
+<tr id="row-{{ item.id }}" data-status="{{ 'reserved' if is_reserved else 'free' }}" data-barcode="{{ item.barcode }}" data-qr="{{ item.qr_base64 }}">
+    
+    <td style="text-align: center; vertical-align: middle;">
+        <input type="checkbox" name="selected_items" class="custom-checkbox" value="{{ item.id }}" onclick="updateMassActionBar()">
+        
+        <!-- 🧠 ДОБАВИЛИ: Компактный мобильный карандаш, передающий ID, Длину, Ширину и Комментарий детали -->
+        <button type="button" class="mobile-edit-trigger" title="Править размеры" onclick="showEditForm('{{ item.id }}', '{{ item.length }}', '{{ item.width }}', '{{ item.comment }}')">✏️</button>
+    </td>
+    
+    <!-- 2. НАИМЕНОВАНИЕ (ОСТАЕТСЯ БЕЗ ИЗМЕНЕНИЙ) -->
+    <td style="text-align: left; vertical-align: middle;"> 
+        <span class="material-text" style="font-weight: 600; color: #ddd; display: block;">
+            {{ item.category }} {{ item.thickness }} мм {{ item.name }}
+        </span>
+        <!-- БЛОК РЕЗЕРВА НА СТАРТЕ СТРАНИЦЫ -->
+        {% if is_reserved %}
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                <span style="border: 1px solid #ff5500; color: #ff5500; font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: bold; text-transform: uppercase;">
+                    РЕЗЕРВ
+                </span>
+                <span style="color: #777; font-size: 12px;">для:</span>
+                <span style="color: #00bef7; font-size: 12px; font-style: italic;">
+                    {{ item.get('reserve_order', 'Не указан') }}
+                </span>
+            </div>
+        {% endif %}
+
+
+
+<!-- ВЕРСТКА ТАБЛИЦЫ MOLDING.HTML — СТРОГО В ОДНУ СТРОКУ БЕЗ ПЕРЕНОСОВ -->
+{% if item.comment and item.comment.strip() != "" %}
+    <div class="material-comment" style="margin-top: 4px; line-height: 1.4;"><span style="color: #777; font-size: 12px;">💬 Пометка:</span> <span style="color: #00bef7; font-size: 12px; font-style: italic;">{{ item.comment }}</span></div>
+{% endif %}
+
+
+
+                            </td>
+
+
+                            <!-- 3. ДЛИНА L -->
+                            <td class="material-len" style="text-align: center; font-weight: bold; color: #bbb; vertical-align: middle;">{{ item.length }}</td>
+                            
+                            <!-- 4. ШИРИНА W -->
+                            <td class="material-width" style="text-align: center; font-weight: bold; color: #bbb; vertical-align: middle;">{{ item.width }}</td>
+
+                            <!-- 5. КОЛИЧЕСТВО (Вернули на склад!) -->
+                            <td class="material-qty" style="text-align: center; font-weight: bold; color:  #bbb; vertical-align: middle;">
+                                {{ item.quantity }}
+                            </td>
+
+                            <!-- 6. ПЛОЩАДЬ -->
+                            <td class="material-area" style="text-align: center; font-weight: bold; color: #bbb; vertical-align: middle;">
+                                {{ "%.3f" | format((item.length | float * item.width | float) / 1000000) }}
+                            </td>
+                            
+
+
+                            
+                            <!-- 6. КНОПКИ ДЕЙСТВИЯ -->
+                            <td style="text-align: right; padding-right: 25px; vertical-align: middle;">
+                                <div style="display: inline-flex; gap: 8px; justify-content: flex-end; width: 100%;">
+                                    <!-- <button type="button" onclick="printLabel('{{ item.category }} {{ item.thickness }}мм {{ item.name }}', '{{ item.length }}', '{{ item.width }}', '{{ item.id }}')">🖨 Бирка</button> -->
+                                    <!-- ИСПРАВИЛИ ВЫЗОВ showEditForm (добавился item.comment) -->
+                                    <button type="button" onclick="showEditForm('{{ item.id }}', '{{ item.length }}', '{{ item.width }}', '{{ item.comment | default()}}')">✏️ Править</button>
+
+                                </div>
+                            </td>
+                        </tr>
+<!-- СКРЫТАЯ СТРОКА РЕДАКТИРОВАНИЯ ЛИСТОВ (ИСПРАВЛЕННАЯ С КОЛИЧЕСТВОМ) -->
+<tr id="edit-form-row-{{ item.id }}" style="display: none; background-color: #212121;">
+    <td colspan="7" style="padding: 10px 25px;">
+        <div style="display: flex; gap: 15px; align-items: center; justify-content: flex-end; flex-wrap: wrap;">
+            <span style="color: #FF671F; font-size: 13px; font-weight: bold;">Параметры обрезка:</span>
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+                <label style="font-size: 10px; color: #888;">Длина L (текстура)</label>
+                <input type="number" id="edit-len-{{ item.id }}" style="height: 30px; width: 90px; padding: 0 8px; box-sizing: border-box;">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+                <label style="font-size: 10px; color: #888;">Ширина W (мм)</label>
+                <input type="number" id="edit-width-{{ item.id }}" style="height: 30px; width: 90px; padding: 0 8px; box-sizing: border-box;">
+            </div>
+            
+            <!-- 🧠 НОВОЕ ПОЛЕ: КОЛИЧЕСТВО (В ЕДИНЕМ СТИЛЕ РАЗМЕРОВ) -->
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+                <label style="font-size: 10px; color: #888;">Кол-во (шт)</label>
+                <input type="number" id="edit-qty-{{ item.id }}" value="{{ item.quantity | default(1) }}" min="1" step="1" onkeypress="return event.charCode >= 48 && event.charCode <= 57" style="height: 30px; width: 70px; padding: 0 8px; box-sizing: border-box;">
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+                <label style="font-size: 10px; color: #888;">Комментарий / Пометка</label>
+                <input type="text" id="edit-comment-{{ item.id }}" value="{{ item.comment | default('') }}" style="height: 30px; width: 220px; padding: 0 8px; box-sizing: border-box;">
+            </div>
+       
+            <button type="button" onclick="submitEditMaterial('{{ item.id }}', '{{ item.category }} {{ item.thickness }}мм {{ item.name }}')" style="min-height: 30px; padding: 0 15px; margin-top: 12px;">Сохранить</button>
+            <button type="button" onclick="closeRowForms('{{ item.id }}')" style="border-color: #777; color: #777; min-height: 30px; margin-top: 12px;">Отмена</button>
+        </div>
+    </td>
+</tr>
+
+                        {% endfor %}
+                    {% else %}
+                    <tr id="empty-row"><td colspan="6" class="empty-msg">Остатки ЛДСП/ЛМДФ на складе не обнаружены</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+
+        </div>
+
+        <!-- МОНОЛИТНАЯ НИЖНЯЯ ПАНЕЛЬ ДЕЙСТВИЙ -->
+        <div id="mass-action-bar" class="bottom-action-bar">
+            <div style="font-size: 14px; font-weight: 600; color: #e0e0e0;">
+                Выбрано деталей: <span id="selected-count" style="color: #FF671F; font-weight: 800;">0</span>
+            </div>
+            
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <div id="bar-free-actions" style="display: flex; gap: 10px; align-items: center;">
+                    <!-- С подсказками -->
+                    <!-- <input type="text" name="mass_reserve_order" id="mass-reserve-order" placeholder="Имя заказа для резерва..." style="height: 34px; width: 200px; font-size: 13px;"> -->
+                    <!-- без них -->
+                    <input type="text" name="mass_reserve_order" id="mass-reserve-order" autocomplete="off" placeholder="Имя заказа для резерва..." style="height: 34px; width: 200px; font-size: 13px;">
+
+                    <button type="button" onclick="submitMassAction('/mass-reserve')" style="height: 34px; min-height: 34px; padding: 0 15px; ">🔒 В резерв</button>
+                </div>
+
+                <div id="bar-reserved-actions" style="display: none;">
+                    <!-- СДЕЛАЛИ КНОПКУ ШИРЕ И КРУПНЕЕ -->
+                    <button type="button" onclick="submitMassAction('/mass-unreserve')" style="height: 34px; min-height: 34px; padding: 0 25px; min-width: 180px; font-weight: bold;">🔓 Снять с резерва</button>
+                </div>
+
+                <!-- НОВАЯ КНОПКА МАССОВОЙ ПЕЧАТИ -->
+                <button type="button" onclick="printMassLabels()" style="height: 34px; min-height: 34px; border-color: #00bef7; color: #00bef7; padding: 0 20px; font-weight: bold;">🖨 Печать бирок</button>
+                
+                <button type="button" onclick="submitMassAction('/mass-delete')" style="height: 34px; min-height: 34px; border-color: #f44336; color: #f44336; padding: 0 20px;">🗑 Списать</button>
+
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<script>
+    // ============================================================
+    // 1. ИНИЦИАЛИЗАЦИЯ И ВКЛАДКИ
+    // ============================================================
+    let currentTab = 'free';
+    let html5QrcodeScanner = null;
+
+    setTimeout(() => { filterTableData(); }, 100);
+
+
+    // ============================================================
+    // 2. УПРАВЛЕНИЕ ГАЛОЧКАМИ И НИЖНЕЙ ПАНЕЛЬЮ
+    // ============================================================
+    function toggleAllCheckboxes(master) {
+        const table = document.getElementById("materials-table");
+        if (!table) return;
+        const checkboxes = table.querySelectorAll('input[name="selected_items"]');
+        
+        checkboxes.forEach(cb => {
+            const row = cb.closest('tr');
+            if (row && row.style.display !== 'none') {
+                cb.checked = master ? master.checked : false;
+            } else {
+                cb.checked = false; 
+            }
+        });
+        updateMassActionBar();
+    }
+
+    // ============================================================
+    // ИСПРАВЛЕННОЕ УМНОЕ ОБНОВЛЕНИЕ НИЖНЕЙ ПАНЕЛИ ОПЕРАЦИЙ
+    // ============================================================
+    function updateMassActionBar() {
+        const table = document.getElementById("materials-table");
+        if (!table) return;
+        
+        const checkboxes = table.querySelectorAll('input[name="selected_items"]:checked');
+        const countSpan = document.getElementById('selected-count');
+        const actionBar = document.getElementById('mass-action-bar');
+        
+        if (countSpan) countSpan.innerText = checkboxes.length;
+        
+        if (actionBar) {
+            if (checkboxes.length > 0) {
+                actionBar.classList.add('active');
+                
+                let hasFree = false;
+                let hasReserved = false;
+                
+                // Проверяем статус каждой отмеченной галочкой строки
+                checkboxes.forEach(cb => {
+                    const row = cb.closest('tr');
+                    if (row) {
+                        const status = row.getAttribute('data-status');
+                        if (status === 'reserved') {
+                            hasReserved = true;
+                        } else if (status === 'free') {
+                            hasFree = true;
+                        }
+                    }
+                });
+                
+                const freeActions = document.getElementById('bar-free-actions');
+                const resActions = document.getElementById('bar-reserved-actions');
+                
+                // Проверяем, открыт ли сайт со смартфона (экран до 600px)
+                const isMobile = window.matchMedia("(max-width: 600px)").matches;
+                // На ПК используем 'flex' для горизонтального ряда, на мобильном 'block' для вертикального
+                const displayStyle = isMobile ? 'block' : 'flex';
+                
+                // ЛОГИКА ПЕРЕКЛЮЧЕНИЯ КНОПОК НА ПАНЕЛИ ДЛЯ ВСЕХ УСТРОЙСТВ:
+                if (hasReserved && !hasFree) {
+                    // Выбраны ТОЛЬКО резервные материалы -> показываем "Снять с резерва"
+                    if (freeActions) freeActions.style.setProperty('display', 'none', 'important');
+                    if (resActions) resActions.style.setProperty('display', displayStyle, 'important');
+                } else if (hasFree && !hasReserved) {
+                    // Выбраны ТОЛЬКО свободные материалы -> показываем "В резерв"
+                    if (freeActions) freeActions.style.setProperty('display', displayStyle, 'important');
+                    if (resActions) resActions.style.setProperty('display', 'none', 'important');
+                } else {
+                    // Смешанный выбор (и свободные, и резервные одновременно)
+                    if (freeActions) freeActions.style.setProperty('display', 'none', 'important');
+                    if (resActions) resActions.style.setProperty('display', 'none', 'important');
+                }
+
+                
+            } else {
+                actionBar.classList.remove('active');
+            }
+        }
+    }
+
+
+
+    function submitMassAction(actionUrl, confirmMessage) {
+    const form = document.getElementById('mass-action-form');
+    if (form) {
+        form.action = actionUrl;
+        form.submit();
+    }
+}
+
+
+    // ============================================================
+    // 3. РЕДАКТИРОВАНИЕ РАЗМЕРОВ
+    // ============================================================
+    function submitSingleEdit(id) {
+        const len = document.getElementById('edit-len-' + id).value;
+        const width = document.getElementById('edit-width-' + id).value;
+        if (!len || !width) { alert('Заполните размеры!'); return; }
+        
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/edit-sheet/' + id;
+        
+        const fields = { 'length': len, 'width': width, 'quantity': 1 };
+        for (let key in fields) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = fields[key];
+            form.appendChild(input);
+        }
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    // ============================================================
+    // 4. УМНЫЙ СКВОЗНОЙ ПОИСК + СОРТИРОВКА ПО ВКЛАДКАМ (ЖЕСТКАЯ ФИКСАЦИЯ)
+    // ============================================================
+    function filterTableData() {
+        const searchInput = document.getElementById("table-search");
+        const filter = searchInput ? searchInput.value.toLowerCase().trim() : "";
+        const table = document.getElementById("materials-table");
+        if (!table) return;
+        const tr = table.getElementsByTagName("tr");
+        let visibleCount = 0;
+
+        // ЖЕСТКАЯ ПРОВЕКА АКТИВНОГО ТАБА ПО ВАШИМ ОРИГИНАЛЬНЫМ ID КНОПОК
+        let activeTab = 'free'; // По умолчанию показываем свободные материалы
+        
+        const btnRes = document.getElementById('tab-reserved');
+        // Если кнопка "В резерве" существует и на ней горит ваш оригинальный класс active
+        if (btnRes && btnRes.classList.contains('active')) {
+            activeTab = 'reserved';
+        }
+
+        // Синхронизируем глобальную переменную для живого онлайна
+        currentTab = activeTab;
+
+        // Флаг: активен ли текстовый поиск прямо сейчас
+        const isSearching = filter.length > 0;
+
+        for (let i = 1; i < tr.length; i++) {
+            if (tr[i].id && tr[i].id.startsWith("row-")) {
+                const rowStatus = tr[i].getAttribute("data-status"); // 'free' или 'reserved'
+                const rowText = tr[i].textContent || tr[i].innerText;
+                
+                const id = tr[i].id.replace("row-", "").toLowerCase();
+                const nextRowEdit = document.getElementById("edit-form-row-" + tr[i].id.replace("row-", ""));
+
+                // Проверяем текстовое совпадение (по названию, размерам или ID)
+                const isMatchText = rowText.toLowerCase().indexOf(filter) > -1;
+                const isMatchId = id.indexOf(filter) > -1;
+                const isMatch = isMatchText || isMatchId;
+                
+                // ============================================================
+                // ИСПРАВЛЕННАЯ ПРОВЕРКА СООТВЕТСТВИЯ АКТИВНОЙ ВКЛАДКЕ
+                // ============================================================
+                let isCorrectTab = false;
+                
+                // Строка поиска теперь ищет материалы ТОЛЬКО внутри текущей открытой вкладки
+                if (activeTab === 'free' && rowStatus === 'free') {
+                    isCorrectTab = true;
+                } else if (activeTab === 'reserved' && rowStatus === 'reserved') {
+                    isCorrectTab = true;
+                } else if (activeTab === 'all') {
+                    // Если у вас когда-то появится вкладка "Все"
+                    isCorrectTab = true;
+                }
+
+                // Строка скрытия и показа строки (срабатывает, только если и поиск совпал, и вкладка верная)
+                if (isMatch && isCorrectTab) {
+                    tr[i].style.display = "";
+                    visibleCount++;
+                } else {
+                    tr[i].style.display = "none";
+                    if (nextRowEdit) nextRowEdit.style.display = "none";
+                }
+
+            }
+        }
+        
+        // Показываем или скрываем заглушку "Ничего не найдено"
+        const emptyRow = document.getElementById("empty-row");
+        if (emptyRow) { 
+            emptyRow.style.display = (visibleCount === 0) ? "" : "none"; 
+        }
+        
+        if (typeof updateMassActionBar === "function") {
+            updateMassActionBar();
+        }
+    }
+
+    // ============================================================
+    // ИСПРАВЛЕННОЕ ДИНАМИЧЕСКОЕ ОТКРЫТИЕ ФОРМЫ РЕДАКТИРОВАНИЯ L и W
+    // ============================================================
+    // Обновленный вызов функции (добавился параметр currentComment)
+    function showEditForm(id, currentLength, currentWidth, currentComment) {
+        closeRowForms();
+        
+        const editRow = document.getElementById('edit-form-row-' + id);
+        const lenInput = document.getElementById('edit-len-' + id);
+        const widthInput = document.getElementById('edit-width-' + id);
+        const qtyInput = document.getElementById('edit-qty-' + id); // 🧠 НАХОДИМ ПОДСТАВЛЕННЫЙ ИНПУТ КОЛИЧЕСТВА
+        const commentInput = document.getElementById('edit-comment-' + id);
+        
+        if (editRow && lenInput && widthInput) {
+            lenInput.value = currentLength;
+            widthInput.value = currentWidth;
+            
+            // 🧠 Считываем текущее сохраненное количество заготовки прямо из таблицы и подставляем в поле ввода формы
+            const targetRow = document.getElementById('row-' + id);
+            if (targetRow && qtyInput) {
+                const currentQty = targetRow.querySelector('.material-qty').innerText.trim();
+                qtyInput.value = currentQty || "1";
+            }
+            
+            if (commentInput) commentInput.value = currentComment || "";
+            
+            const isMobile = window.matchMedia("(max-width: 600px)").matches;
+            editRow.style.setProperty('display', isMobile ? 'block' : 'table-row', 'important');
+            editRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+    
+    
+    
+    // Функция закрытия всех скрытых строк редактирования на складе
+    function closeRowForms(specificId) {
+        if (specificId) {
+            // Закрываем конкретную строку по кнопке "Отмена"
+            const row = document.getElementById('edit-form-row-' + specificId);
+            if (row) row.style.setProperty('display', 'none', 'important');
+        } else {
+            // Глобальная зачистка: прячем вообще все строки редактирования в таблице
+            const allEditRows = document.querySelectorAll('tr[id^="edit-form-row-"]');
+            allEditRows.forEach(row => {
+                row.style.setProperty('display', 'none', 'important');
+            });
+        }
+    }
+    
+    // 1. Автоматическая проверка при старте страницы (для внешней камеры телефона)
+    window.addEventListener('DOMContentLoaded', () => {
+        // 🧠 АВТО-СОРТИРОВКА ПРИ ВХОДЕ: Заносим колонку Материал / Декор (Индекс 1) в стек по возрастанию
+        const materialHeader = document.querySelector("#materials-table thead th:nth-child(2)");
+        if (materialHeader) {
+            sortStack = [{ colIndex: 1, dir: 'asc', thElement: materialHeader }];
+            renderSortIndicators(document.getElementById("materials-table"));
+            applyStackSorting(document.getElementsByTagName("tbody")[0]);
+        }
+        
+        filterTableData();
+        
+
+        const urlParams = new URLSearchParams(window.location.search);
+        // ===============================================================================
+        // УМНЫЙ ПЕРЕХВАТ СКАНИРОВАНИЯ QR-КОДА ДЛЯ ЛИСТОВЫХ МАТЕРИАЛОВ
+        // ===============================================================================
+        const searchId = urlParams.get('search_id');
+        if (searchId) {
+            const searchInput = document.getElementById("table-search");
+            if (searchInput) {
+                searchInput.value = searchId.trim();
+                
+                // 🧠 УМНЫЙ ШАГ: Находим строку плиты ЛДСП ДО фильтрации
+                const targetRow = document.getElementById('row-' + searchId.trim());
+                if (targetRow) {
+                    const status = targetRow.getAttribute('data-status');
+                    
+                    // Переключаем вкладку в зависимости от реального статуса обрезка в базе
+                    if (status === 'reserved' && typeof switchTab === "function") {
+                        switchTab('reserved');
+                    } else if (status === 'free' && typeof switchTab === "function") {
+                        switchTab('free');
+                    }
+            }
+            
+            filterTableData();
+            
+            setTimeout(() => {
+                const updatedRow = document.getElementById('row-' + searchId.trim());
+                if (updatedRow) {
+                    updatedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    updatedRow.style.transition = "background-color 0.4s ease";
+                    updatedRow.style.backgroundColor = "#ff5500";
+                    
+                    setTimeout(() => {
+                        const currentStatus = updatedRow.getAttribute('data-status');
+                        updatedRow.style.backgroundColor = (currentStatus === 'reserved') ? "#1c1c1c" : "transparent";
+                    }, 1200);
+                }
+            }, 300);
+        }
+        const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.pushState({ path: newUrl }, '', newUrl);
+    }
+    
+     
+    });
+    
+    // 2. Логика для ВНУТРЕННЕГО сканера приложения (ЕДИНСТВЕННАЯ И ПРАВИЛЬНАЯ НАД КЛЮЧОМ)
+    function onScanSuccess(decodedText) {
+        toggleScanner(); // Закрываем камеру
+        
+        // Надежно вытаскиваем ID детали, разбив короткую ссылку по слэшам
+        const parts = decodedText.split('/');
+        const scannedId = parts[parts.length - 1].trim();
+        
+        const searchInput = document.getElementById("table-search");
+        if (searchInput) {
+            // Подставляем ID в поиск, как будто вбили руками
+            searchInput.value = scannedId;
+            
+            // Запускаем фильтр склада (который теперь умеет искать по ID)
+            filterTableData();
+            
+            // Скроллим и подсвечиваем оранжевым
+            const targetRow = document.getElementById('row-' + scannedId);
+            if (targetRow) {
+                targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                targetRow.style.transition = "background-color 0.3s";
+                targetRow.style.backgroundColor = "#ff5500";
+                setTimeout(() => {
+                    const status = targetRow.getAttribute('data-status');
+                    targetRow.style.backgroundColor = (status === 'reserved') ? "#1c1c1c" : "transparent";
+                }, 1000);
+            }
+        }
+    }
+
+    function onScanError(err) {}
+    // ============================================================
+    // 5. ИСПРАВЛЕННЫЙ МОНОЛИТНЫЙ СКАНЕР ДЛЯ ЦЕХА
+    // ============================================================
+    function toggleScanner() {
+        const container = document.getElementById('scanner-container');
+        if (!container) return;
+        
+        if (container.style.display === 'none') {
+            container.style.display = 'block';
+            
+            // Если библиотека еще не развернута в памяти — разворачиваем её монолитно
+            if (typeof Html5QrcodeScanner === "undefined") {
+                console.log("Разворачиваем оригинальный сканер...");
+                try {
+                    var scriptElement = document.createElement('script');
+                    // Вставляем оригинальный код библиотеки напрямую из файла в папке templates
+                    scriptElement.text = `{% raw %}{% include "html5-qrcode.min.js" ignore missing %}{% endraw %}`;
+                    document.head.appendChild(scriptElement);
+                } catch (err) {
+                    alert("Ошибка сборки сканера: " + err.message);
+                }
+            }
+            
+            // Запускаем сканер
+            try {
+                html5QrcodeScanner = new Html5QrcodeScanner("interactive-reader", { fps: 15, qrbox: 250 });
+                html5QrcodeScanner.render(onScanSuccess, onScanError);
+            } catch (e) {
+                alert("Ошибка запуска видеопотока: " + e.message);
+            }
+        } else {
+            container.style.display = 'none';
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear().catch(err => console.log(err));
+                html5QrcodeScanner = null;
+                const readerDiv = document.getElementById("interactive-reader");
+                if (readerDiv) readerDiv.innerHTML = "";
+            }
+        }
+    }
+    
+    
+    
+    
+ 
+    // ============================================================
+    // 7–8. ПЕЧАТЬ БИРОК 58×40 на сетевой принтер (BSmart BS350, TSPL)
+    // ============================================================
+    async function printLabel(name, length, width, itemId) {
+        try {
+            const response = await fetch('/api/print-label', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: name,
+                    length: parseInt(length, 10),
+                    width: parseInt(width, 10),
+                    item_id: itemId
+                })
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                alert(data.detail || 'Не удалось отправить бирку на принтер');
+                return;
+            }
+            alert(data.message || 'Бирка отправлена на печать');
+        } catch (err) {
+            alert('Ошибка связи с сервером печати');
+        }
+    }
+    
+    async function printMassLabels() {
+        const table = document.getElementById("materials-table");
+        if (!table) return;
+        
+        const checkboxes = table.querySelectorAll('input[name="selected_items"]:checked');
+        if (checkboxes.length === 0) {
+            alert("Сначала отметьте галочками материалы для печати!");
+            return;
+        }
+        
+        const itemIds = Array.from(checkboxes).map(cb => cb.value);
+        try {
+            const response = await fetch('/api/print-labels', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ item_ids: itemIds })
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                alert(data.detail || 'Не удалось отправить бирки на принтер');
+                return;
+            }
+            let msg = data.message || `Отправлено бирок: ${data.printed || itemIds.length}`;
+            if (data.missing_ids && data.missing_ids.length) {
+                msg += `\nНе найдены: ${data.missing_ids.join(', ')}`;
+            }
+            alert(msg);
+        } catch (err) {
+            alert('Ошибка связи с сервером печати');
+        }
+    }
+    // Функция для мобильной кнопки "Выбрать все"
+    function triggerMobileSelectAll() {
+        const masterCheckbox = document.getElementById('check-all');
+        const mobileBtn = document.getElementById('mobile-select-all-btn');
+        if (!masterCheckbox || !mobileBtn) return;
+        
+        // Переключаем состояние главного скрытого чекбокса
+        masterCheckbox.checked = !masterCheckbox.checked;
+        
+        // Запускаем штатный пересчет галочек, который вы уже написали
+        toggleAllCheckboxes(masterCheckbox);
+        
+        // Меняем текст на кнопке в зависимости от состояния
+        if (masterCheckbox.checked) {
+            mobileBtn.innerText = "☒ Снять выделение";
+            mobileBtn.style.borderColor = "#FF671F";
+            mobileBtn.style.color = "#FF671F";
+        } else {
+            mobileBtn.innerText = "☑ Выбрать все";
+            mobileBtn.style.borderColor = "#FF671F";
+            mobileBtn.style.color = "#FF671F";
+        }
+    }
+    
+    // Расширяем вашу существующую функцию смены вкладок, 
+    // чтобы при переключении табов текст кнопки сбрасывался в исходное состояние
+    const originalSwitchTab = switchTab;
+    switchTab = function(tabType) {
+        originalSwitchTab(tabType);
+        const mobileBtn = document.getElementById('mobile-select-all-btn');
+        if (mobileBtn) {
+            mobileBtn.innerText = "☑ Выбрать все";
+            mobileBtn.style.borderColor = "#FF671F";
+            mobileBtn.style.color = "#FF671F";
+        }
+    };
+    
+    
+    // ============================================================
+    // 9. БЕСШУМНАЯ ТОЧЕЧНАЯ СИНХРОНИЗАЦИЯ (ПРИНЦИП Virtual DOM — БЕЗ МОРГАНИЯ)
+    // ============================================================
+    setInterval(fetchLiveUpdates, 2000); 
+    
+   
+        
+        // ============================================================
+        // НАДЕЖНОЕ ФОНОВОЕ СОХРАНЕНИЕ ИЗМЕНЕНИЙ С МГНОВЕННЫМ ОБНОВЛЕНИЕМ ЭКРАНА
+        // ============================================================
+        function submitEditMaterial(itemId, fullName) {
+            
+            const lenInput = document.getElementById('edit-len-' + itemId);
+    const widthInput = document.getElementById('edit-width-' + itemId);
+    const qtyInput = document.getElementById('edit-qty-' + itemId); // 🧠 НАХОДИМ ИНПУТ КОЛИЧЕСТВА
+    const commentInput = document.getElementById('edit-comment-' + itemId);
+    
+    // Проверяем, что все важные поля ввода существуют на странице
+    if (!lenInput || !widthInput || !qtyInput) return;
+    
+    const lengthValue = lenInput.value;
+    const widthValue = widthInput.value;
+    const qtyValue = qtyInput.value; // 🧠 ЗАБРАЛИ СВЕЖЕЕ КОЛИЧЕСТВО
+    const commentValue = commentInput ? commentInput.value.trim() : "";
+    
+    const formData = new FormData();
+    formData.append('length', lengthValue);
+    formData.append('width', widthValue);
+    formData.append('quantity', qtyValue); // 🧠 ДОБАВИЛИ В ФОРМУ ОТПРАВКИ НА БЭКЕНД
+    formData.append('comment', commentValue);
+    
+    fetch('/edit-sheet/' + itemId, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        // НАХОДИМ СТРОКУ ДЕТАЛИ В ТАБЛИЦЕ И МГНОВЕННО МЕНЯЕМ ДАННЫЕ НА ЭКРАНЕ БЕЗ F5
+        const targetRow = document.getElementById('row-' + itemId);
+        if (targetRow) {
+            // Обновляем ячейки длины, ширины и количества
+            const lenTd = targetRow.querySelector('.material-len');
+            const widthTd = targetRow.querySelector('.material-width');
+            const qtyTd = targetRow.querySelector('.material-qty'); // 🧠 НАХОДИМ СТРОКУ КОЛИЧЕСТВА
+            const areaTd = targetRow.querySelector('.material-area');
+            
+            if (lenTd) lenTd.innerText = lengthValue;
+            if (widthTd) widthTd.innerText = widthValue;
+            if (qtyTd) qtyTd.innerText = qtyValue; // 🧠 ОБНОВИЛИ КОЛИЧЕСТВО НА ЭКРАНЕ ПРЯМО СЕЙЧАС
+            
+            // Пересчитываем и обновляем площадь куска ЛДСП на лету
+            if (areaTd) {
+                const newArea = ((parseFloat(lengthValue) * parseFloat(widthValue)) / 1000000).toFixed(3);
+                areaTd.innerText = newArea;
+            }
+            
+            // ОБНОВЛЯЕМ ПАРАМЕТРЫ НА КНОПКЕ "ПРАВИТЬ", ЧТОБЫ ПРИ ПОВТОРНОМ КЛИКЕ ДАННЫЕ БЫЛИ СВЕЖИМИ
+            const allButtons = targetRow.querySelectorAll('button');
+            allButtons.forEach(btn => {
+                if (btn.innerText.includes('Править')) {
+                    const safeComment = commentValue.replace(/'/g, "\\'");
+                    btn.setAttribute('onclick', "showEditForm('" + itemId + "', '" + lengthValue + "', '" + widthValue + "', '" + safeComment + "')");
+                }
+            });
+
+            // Обновляем или добавляем голубую строчку комментария под названием
+            let commentDiv = targetRow.querySelector('.material-comment');
+            const nameTd = targetRow.querySelector('td[style*="text-align: left"]');
+            
+            if (commentValue !== "") {
+                if (commentDiv) {
+                    const textSpan = commentDiv.querySelector('span:last-child');
+                    if (textSpan) textSpan.innerText = commentValue;
+                } else if (nameTd) {
+                    const newCommentHtml = '<div class="material-comment" style="display: flex; align-items: center; gap: 4px; margin-top: 4px;">' +
+                        '<span style="color: #777; font-size: 12px;">💬 Пометка:</span>' +
+                        '<span style="color: #00bef7; font-size: 12px; font-style: italic;">' + commentValue + '</span>' +
+                        '</div>';
+                        nameTd.insertAdjacentHTML('beforeend', newCommentHtml);
+                    }
+                } else {
+                    if (commentDiv) commentDiv.remove();
+                }
+            }
+
+            // Закрываем строку редактирования на экране
+            closeRowForms(itemId);
+            
+            // ПРИНУДИТЕЛЬНО ВЫЗЫВАЕМ ФИЛЬТР (чтобы обновились табы и включился 2-сек онлайн)
+            if (typeof filterTableData === "function") {
+                filterTableData();
+            }
+            
+            // Включаем оранжевую HTML-плашку предложения печати бирок
+            const toast = document.getElementById('print-toast');
+            const toastName = document.getElementById('toast-material-name');
+            const printBtn = document.getElementById('toast-print-btn');
+            
+            if (toast && toastName && printBtn) {
+                toastName.innerText = fullName + " (" + lengthValue + "x" + widthValue + " мм)";
+                toast.style.display = 'flex';
+                
+                printBtn.onclick = function() {
+                    if (typeof printLabel === "function") {
+                        printLabel(fullName, lengthValue, widthValue, itemId);
+                    }
+                    toast.style.display = 'none';
+                };
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Ошибка связи со складом при сохранении!");
+        });
+    }
+
+    
+    
+    
+    function switchTab(tabType) {
+        currentTab = tabType; // Запоминаем вкладку глобально ('free' или 'reserved')
+        
+        // Сбрасываем массовые галочки при переходе
+        const checkAll = document.getElementById('check-all');
+        if (checkAll) checkAll.checked = false;
+        if (typeof toggleAllCheckboxes === "function") toggleAllCheckboxes(checkAll);
+        
+        // НАДЕЖНЫЙ ПОИСК КНОПОК ПО ВАШЕМУ ОРИГИНАЛЬНОМУ CSS
+        const btnFree = document.getElementById('tab-free');
+        const btnRes = document.getElementById('tab-reserved');
+        const titleText = document.getElementById('table-title-text');
+        
+        // Начисто снимаем класс active по вашей оригинальной логике
+        if (btnFree) btnFree.classList.remove('active');
+        if (btnRes) btnRes.classList.remove('active');
+        
+        // Включаем активную вкладку и меняем заголовки
+        if (tabType === 'free') {
+            if (btnFree) btnFree.classList.add('active');
+            if (titleText) titleText.innerText = 'Свободные остатки материалов';
+        } else if (tabType === 'reserved') {
+            if (btnRes) btnRes.classList.add('active');
+            if (titleText) titleText.innerText = 'Материалы зарезервированные под заказы';
+        }
+        
+        // Запускаем наш умный фильтр, который разложит материалы по вкладкам
+        filterTableData();
+    }
+        // ===============================================================================
+    // 🧠 1. ГЛОБАЛЬНЫЙ СТЕК МУЛЬТИ-СОРТИРОВКИ ЛИСТОВ (МНОГОУРОВНЕВЫЙ С SHIFT)
+    // ===============================================================================
+    let sortStack = []; // Хранит объекты вида: { colIndex: 2, dir: 'asc', thElement: th }
+
+    function sortTable(colIndex, headerElement, event) {
+        const table = document.getElementById("materials-table");
+        if (!table) return;
+        const tbody = table.getElementsByTagName("tbody")[0];
+        if (!tbody) return;
+
+        const isShift = event && event.shiftKey;
+
+        if (!isShift) {
+            // -----------------------------------------------------------------------
+            // СЦЕНАРИЙ А: КЛИК БЕЗ SHIFT (Одиночная сортировка / Циклический сброс)
+            // -----------------------------------------------------------------------
+            const existing = sortStack.find(s => s.colIndex === colIndex);
+            let nextDir = 'asc';
+            
+            if (sortStack.length === 1 && existing) {
+                if (existing.dir === 'asc') nextDir = 'desc';
+                else nextDir = 'none'; // Третий клик — полный сброс
+            }
+
+            sortStack = []; // Начисто стираем мульти-стек
+            
+            if (nextDir !== 'none') {
+                sortStack.push({ colIndex: colIndex, dir: nextDir, thElement: headerElement });
+                headerElement.setAttribute("data-dir", nextDir);
+            } else {
+                headerElement.removeAttribute("data-dir");
+            }
+        } else {
+            // -----------------------------------------------------------------------
+            // СЦЕНАРИЙ Б: КЛИК С ЗАЖАТЫМ SHIFT (Мульти-сортировка)
+            // -----------------------------------------------------------------------
+            table.querySelectorAll("thead th").forEach(th => th.removeAttribute("data-dir"));
+
+            const stackIndex = sortStack.findIndex(s => s.colIndex === colIndex);
+
+            if (stackIndex === -1) {
+                // Добавляем в конец стека по возрастанию (▲)
+                sortStack.push({ colIndex: colIndex, dir: 'asc', thElement: headerElement });
+            } else {
+                if (sortStack[stackIndex].dir === 'asc') {
+                    // Переключаем на убывание (▼)
+                    sortStack[stackIndex].dir = 'desc';
+                } else {
+                    // Полностью удаляем из стека и пересчитываем индексы
+                    sortStack.splice(stackIndex, 1);
+                }
+            }
+        }
+
+        // Рендерим стрелочки и индексы приоритета на UI шапки
+        renderSortIndicators(table);
+
+        // Переставляем строки в DOM
+        applyStackSorting(tbody);
+    }
+
+    // ===============================================================================
+    // 🧠 2. СИНХРОНИЗАТОР ОРАНЖЕВЫХ СТРЕЛОК И ИНДЕКСОВ ПРИОРИТЕТА ЛИСТОВ В ШАПКЕ
+    // ===============================================================================
+    function renderSortIndicators(table) {
+        const allHeaders = table.querySelectorAll("thead th");
+        
+        allHeaders.forEach(th => {
+            const indicator = th.querySelector(".sort-indicator");
+            if (!indicator) return;
+
+            const colIndex = Array.from(allHeaders).indexOf(th);
+            const stackIndex = sortStack.findIndex(s => s.colIndex === colIndex);
+
+            // Всегда удерживаем сочный оранжевый цвет шапки плит ЛДСП
+            indicator.style.color = "#FF671F"; 
+
+            if (stackIndex === -1) {
+                indicator.innerText = "▲▼";
+            } else {
+                const item = sortStack[stackIndex];
+                const arrow = item.dir === 'asc' ? "▲" : "▼";
+                // Дорисовываем индекс (1, 2, 3), только если сортируем по нескольким колонкам
+                const indexMarker = sortStack.length > 1 ? " " + (stackIndex + 1) : "";
+                
+                indicator.innerText = arrow + indexMarker;
+            }
+        });
+    }
+
+    // ===============================================================================
+    // 🧠 3. МАТЕМАТИЧЕСКИЙ ДВИЖОК МНОГОУРОВНЕВОЙ СОРТИРОВКИ ЛИСТОВЫХ МАТЕРИАЛОВ
+    // ===============================================================================
+    function applyStackSorting(tbody) {
+        if (sortStack.length === 0) return;
+
+        let rows = Array.from(tbody.querySelectorAll('tr[id^="row-"]'));
+
+        rows.sort((rowA, rowB) => {
+            // Последовательно перебираем приоритеты из стека
+            for (let i = 0; i < sortStack.length; i++) {
+                const criterion = sortStack[i];
+                const colIndex = criterion.colIndex;
+                const direction = criterion.dir;
+
+                const cellA = rowA.getElementsByTagName("td")[colIndex];
+                const cellB = rowB.getElementsByTagName("td")[colIndex];
+                if (!cellA || !cellB) continue;
+
+                let textA = cellA.innerText.trim();
+                let textB = cellB.innerText.trim();
+
+                let comparison = 0;
+
+                // Числовые колонки листов: Длина (2), Ширина (3), Количество (4), Площадь (5)
+                if (colIndex === 2 || colIndex === 3 || colIndex === 4 || colIndex === 5) {
+                    let numA = parseFloat(textA.replace(/[^0-9.]/g, '')) || 0;
+                    let numB = parseFloat(textB.replace(/[^0-9.]/g, '')) || 0;
+                    comparison = numA - numB;
+                } else {
+                    // Текстовая колонка: Наименование материала
+                    comparison = textA.localeCompare(textB);
+                }
+
+                if (comparison !== 0) {
+                    return direction === "asc" ? comparison : -comparison;
+                }
+            }
+            return rowA.id.localeCompare(rowB.id);
+        });
+
+        // Возвращаем отсортированные строки и формы обратно в таблицу
+        rows.forEach(row => {
+            tbody.appendChild(row);
+            const id = row.id.replace("row-", "");
+            const editForm = document.getElementById("edit-form-row-" + id);
+            if (editForm) tbody.appendChild(editForm);
+        });
+
+        if (typeof filterTableData === "function") filterTableData();
+    }
+
+    // ===============================================================================
+    // 🧠 4. ЖИВОЙ Virtual DOM ТАЙМЕР ЛИСТОВ С УДЕРЖАНИЕМ МУЛЬТИ-СОРТИРОВКИ
+    // ===============================================================================
+    function fetchLiveUpdates() {
+        if (html5QrcodeScanner) return;
+        
+        const allEditRows = document.querySelectorAll('tr[id^="edit-form-row-"]');
+        let isAnyFormOpen = false;
+        allEditRows.forEach(row => {
+            if (row.style.display && row.style.display !== 'none') isAnyFormOpen = true;
+        });
+        if (isAnyFormOpen) return;
+        
+        // Намертво запоминаем нажатые галочки
+        const checkedIds = Array.from(document.querySelectorAll("#materials-table tbody input[name='selected_items']:checked")).map(cb => cb.value);
+        const masterCheckbox = document.getElementById('check-all');
+        const isMasterChecked = masterCheckbox ? masterCheckbox.checked : false;
+
+        fetch('/api/materials')
+        .then(response => response.json())
+        .then(data => {
+            const materials = data.materials || [];
+            const table = document.getElementById("materials-table");
+            if (!table) return;
+            const tbody = table.getElementsByTagName("tbody")[0];
+            if (!tbody) return;
+            
+            const serverIds = materials.map(item => 'row-' + item.id);
+            
+            const currentRows = Array.from(tbody.querySelectorAll('tr[id^="row-"]'));
+            currentRows.forEach(row => {
+                if (!serverIds.includes(row.id)) {
+                    const id = row.id.replace("row-", "");
+                    const editForm = document.getElementById("edit-form-row-" + id);
+                    if (editForm) editForm.remove(); 
+                    row.remove(); 
+                }
+            });
+            
+            if (materials.length === 0) {
+                tbody.innerHTML = '<tr id="empty-row"><td colspan="7" class="empty-msg">Остатки ЛДСП/ЛМДФ на складе не обнаружены</td></tr>';
+                if (typeof updateMassActionBar === "function") updateMassActionBar();
+                return;
+            }
+            
+            const emptyRow = document.getElementById("empty-row");
+            if (emptyRow) emptyRow.remove();
+            
+            materials.forEach(item => {
+                const rowId = 'row-' + item.id;
+                let row = document.getElementById(rowId);
+                
+                const isReserved = (item.status && item.status.toLowerCase().includes('резерв')) || 
+                                   (item.reserve_order && item.reserve_order.trim() !== "");
+                const area = ((parseFloat(item.length) * parseFloat(item.width)) / 1000000).toFixed(3);
+                const orderName = (item.reserve_order && item.reserve_order.trim() !== "") ? item.reserve_order : "Не указан";
+                const fullName = item.category + " " + item.thickness + "мм " + item.name;
+                
+                let reserveHtml = "";
+                if (isReserved) {
+                    reserveHtml = '<div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">' +
+                        '<span style="border: 1px solid #ff5500; color: #ff5500; font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: bold; text-transform: uppercase;">РЕЗЕРВ</span>' +
+                        '<span style="color: #777; font-size: 12px;">для:</span>' +
+                        '<span style="color: #00bef7; font-size: 12px; font-style: italic;">' + orderName + '</span>' +
+                        '</div>';
+                }
+
+                let commentHtml = "";
+                if (item.comment && item.comment.trim() !== "") {
+                    commentHtml = '<div class="material-comment" style="margin-top: 4px; line-height: 1.4;">' +
+                        '<span style="color: #777; font-size: 12px;">💬 Пометка:</span> ' +
+                        '<span style="color: #00bef7; font-size: 12px; font-style: italic;">' + item.comment + '</span>' +
+                        '</div>';
+                }
+                
+                if (row) {
+                    row.setAttribute("data-status", isReserved ? 'reserved' : 'free');
+                    row.setAttribute("data-barcode", item.barcode || "");
+                    row.style.backgroundColor = 'transparent';
+                    
+                    const textTd = row.getElementsByTagName("td")[1];
+                    if (textTd) {
+                        textTd.innerHTML = '<span class="material-text" style="font-weight: 600; color: #ddd; display: block;">' +
+                            item.category + ' ' + item.thickness + ' мм ' + item.name + '</span>' + reserveHtml + commentHtml;
+                    }
+                    
+                    const lenTd = row.querySelector('.material-len');
+                    const widthTd = row.querySelector('.material-width');
+                    const qtyTd = row.querySelector('.material-qty');
+                    const areaTd = row.querySelector('.material-area');
+                    
+                    if (lenTd && lenTd.innerText !== String(item.length)) lenTd.innerText = item.length;
+                    if (widthTd && widthTd.innerText !== String(item.width)) widthTd.innerText = item.width;
+                    if (qtyTd && qtyTd.innerText !== String(item.quantity)) qtyTd.innerText = item.quantity;
+                    if (areaTd && areaTd.innerText !== String(area)) areaTd.innerText = area;
+                    
+                    const rowCheckbox = row.querySelector('input[name="selected_items"]');
+                    if (rowCheckbox) rowCheckbox.checked = checkedIds.includes(String(item.id));
+
+                    // Обновляем параметры onclick НА ВСЕХ кнопках правки в строке (десктоп + карандаш)
+                    const allEditButtons = row.querySelectorAll('[onclick^="showEditForm"]');
+                    allEditButtons.forEach(btn => {
+                        const safeComment = (item.comment || "").replace(/'/g, "\\'");
+                        btn.setAttribute("onclick", "showEditForm('" + item.id + "', '" + item.length + "', '" + item.width + "', '" + safeComment + "')");
+                    });
+                } else {
+                    const isItemChecked = checkedIds.includes(String(item.id)) ? 'checked' : '';
+                    const newRowHtml = '<tr id="row-' + item.id + '" data-status="' + (isReserved ? 'reserved' : 'free') + '" data-barcode="' + (item.barcode || "") + '" ' + (isReserved ? 'style="background-color: #1c1c1c;"' : '') + '>' +
+                        '<td style="text-align: center; vertical-align: middle;">' +
+                            '<input type="checkbox" name="selected_items" class="custom-checkbox" value="' + item.id + '" ' + isItemChecked + ' onclick="updateMassActionBar()">' +
+                            '<button type="button" class="mobile-edit-trigger" onclick="showEditForm(\'' + item.id + '\', \'' + item.length + '\', \'' + item.width + '\', \'' + (item.comment || "") + '\')">✏️</button>' +
+                        '</td>' +
+                        '<td style="text-align: left; vertical-align: middle;"><span class="material-text" style="font-weight: 600; color: #ddd; display: block;">' + item.category + ' ' + item.thickness + ' мм ' + item.name + '</span>' + reserveHtml + commentHtml + '</td>' +
+                        '<td class="material-len" style="text-align: center; font-weight: bold; color: #bbb; vertical-align: middle;">' + item.length + '</td>' +
+                        '<td class="material-width" style="text-align: center; font-weight: bold; color: #bbb; vertical-align: middle;">' + item.width + '</td>' +
+                        '<td class="material-qty" style="text-align: center; font-weight: bold; color: #bbb; vertical-align: middle;">' + item.quantity + '</td>' +
+                        '<td class="material-area" style="text-align: center; font-weight: bold; color: #bbb; vertical-align: middle;">' + area + '</td>' +
+                        '<td style="text-align: right; padding-right: 25px; vertical-align: middle;"><div style="display: inline-flex; gap: 8px; justify-content: flex-end; width: 100%; white-space: nowrap;">' +
+                            '<button type="button" onclick="showEditForm(\'' + item.id + '\', \'' + item.length + '\', \'' + item.width + '\', \'' + (item.comment || "") + '\')">✏️ Править</button>' +
+                        '</div></td>' +
+                    '</tr>' +
+                    '<tr id="edit-form-row-' + item.id + '" style="display: none; background-color: #212121;">' +
+                        '<td colspan="7" style="padding: 10px 25px;"><div style="display: flex; gap: 15px; align-items: center; justify-content: flex-end; flex-wrap: wrap;">' +
+                            '<span style="color: #FF671F; font-size: 13px; font-weight: bold;">Параметры обрезка:</span>' +
+                            '<div style="display: flex; flex-direction: column; gap: 2px;"><label style="font-size: 10px; color: #888;">Длина L (текстура)</label><input type="number" id="edit-len-' + item.id + '" style="height: 30px; width: 90px; padding: 0 8px; box-sizing: border-box;"></div>' +
+                            '<div style="display: flex; flex-direction: column; gap: 2px;"><label style="font-size: 10px; color: #888;">Ширина W (мм)</label><input type="number" id="edit-width-' + item.id + '" style="height: 30px; width: 90px; padding: 0 8px; box-sizing: border-box;"></div>' +
+                            '<div style="display: flex; flex-direction: column; gap: 2px;"><label style="font-size: 10px; color: #888;">Кол-во (шт)</label><input type="number" id="edit-qty-' + item.id + '" value="' + (item.quantity || 1) + '" min="1" step="1" onkeypress="return event.charCode >= 48 && event.charCode <= 57" style="height: 30px; width: 70px; padding: 0 8px; box-sizing: border-box;"></div>' +
+                            '<div style="display: flex; flex-direction: column; gap: 2px;"><label style="font-size: 10px; color: #888;">Комментарий / Пометка</label><input type="text" id="edit-comment-' + item.id + '" value="' + (item.comment || '') + '" style="height: 30px; width: 220px; padding: 0 8px; box-sizing: border-box;"></div>' +
+                            '<button type="button" onclick="submitEditMaterial(\'' + item.id + '\', \'' + fullName + '\')" style="min-height: 30px; padding: 0 15px; margin-top: 12px;">Сохранить</button>' +
+                            '<button type="button" onclick="closeRowForms(\'' + item.id + '\')" style="border-color: #777; color: #777; min-height: 30px; margin-top: 12px;">Отмена</button>' +
+                        '</div></td>' +
+                    '</tr>';
+                    tbody.insertAdjacentHTML('beforeend', newRowHtml);
+                }
+            });
+
+            // МУЛЬТИ-УДЕРЖАНИЕ СОРТИРОВКИ В ТАЙМЕРЕ ЛИСТОВ
+            if (typeof renderSortIndicators === "function" && typeof applyStackSorting === "function") {
+                renderSortIndicators(table);
+                applyStackSorting(tbody);
+            }
+
+            if (masterCheckbox) masterCheckbox.checked = isMasterChecked;
+        })
+        .catch(err => console.log("Ошибка фоновой синхронизации:", err));
+    }
+
+</script>
+

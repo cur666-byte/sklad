@@ -1,0 +1,18 @@
+{
+    "short_name": "Склад",
+    "name": "Склад листовых материалов",
+    "start_url": "/",
+    "id": "/",
+    "background_color": "#121212",
+    "theme_color": "#121212",
+    "display": "standalone",
+    "orientation": "portrait",
+    "icons": [
+      {
+        "src": "/icon.png",
+        "type": "image/png",
+        "sizes": "1254x1254"
+      }
+    ]
+  }
+  
